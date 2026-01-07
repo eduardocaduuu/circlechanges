@@ -1,16 +1,19 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { useStore } from '@/lib/store';
 import type { NormalizedRow } from '@/types';
 import { generateBaskets, calculateFrequentPairs, calculateBasketMetrics } from '@/lib/marketBasket';
 import { formatNumber, formatPercent, exportToCSV } from '@/lib/formatters';
-import { Download } from 'lucide-react';
+import { Download, ChevronLeft, ChevronRight } from 'lucide-react';
 
 interface Props {
   data: NormalizedRow[];
 }
 
+const PAIRS_PER_PAGE = 50;
+
 export default function BasketView({ data }: Props) {
   const { filters } = useStore();
+  const [currentPage, setCurrentPage] = useState(1);
 
   const baskets = useMemo(() =>
     generateBaskets(data, filters.incluirBrindesDoacao),
@@ -26,6 +29,11 @@ export default function BasketView({ data }: Props) {
     calculateBasketMetrics(baskets),
     [baskets]
   );
+
+  const totalPages = Math.ceil(pairs.length / PAIRS_PER_PAGE);
+  const startIndex = (currentPage - 1) * PAIRS_PER_PAGE;
+  const endIndex = startIndex + PAIRS_PER_PAGE;
+  const paginatedPairs = pairs.slice(startIndex, endIndex);
 
   return (
     <div className="space-y-6">
@@ -51,8 +59,13 @@ export default function BasketView({ data }: Props) {
 
       {/* Frequent Pairs */}
       <div className="glass rounded-xl overflow-hidden">
-        <div className="p-4 border-b border-white/10 flex items-center justify-between">
-          <h3 className="text-lg font-semibold">Produtos Comprados Juntos ({pairs.length} pares)</h3>
+        <div className="p-4 border-b border-white/10 flex items-center justify-between flex-wrap gap-4">
+          <div>
+            <h3 className="text-lg font-semibold">Produtos Comprados Juntos ({pairs.length} pares)</h3>
+            <p className="text-sm text-muted-foreground mt-1">
+              Mostrando {startIndex + 1} a {Math.min(endIndex, pairs.length)} de {pairs.length}
+            </p>
+          </div>
           <button
             onClick={() => exportToCSV(
               pairs.map(p => ({
@@ -93,8 +106,8 @@ export default function BasketView({ data }: Props) {
               </tr>
             </thead>
             <tbody className="divide-y divide-white/5">
-              {pairs.slice(0, 50).map((pair, idx) => (
-                <tr key={idx} className="hover:bg-white/5">
+              {paginatedPairs.map((pair, idx) => (
+                <tr key={startIndex + idx} className="hover:bg-white/5">
                   <td className="px-4 py-3 text-sm">
                     <div className="font-mono text-xs text-muted-foreground">{pair.itemA}</div>
                     <div className="text-sm">{pair.nomeA}</div>
@@ -129,6 +142,47 @@ export default function BasketView({ data }: Props) {
             </tbody>
           </table>
         </div>
+
+        {/* Pagination */}
+        {totalPages > 1 && (
+          <div className="p-4 border-t border-white/10 flex items-center justify-between">
+            <div className="text-sm text-muted-foreground">
+              Página {currentPage} de {totalPages}
+            </div>
+            <div className="flex gap-2">
+              <button
+                onClick={() => setCurrentPage(1)}
+                disabled={currentPage === 1}
+                className="px-3 py-2 rounded-lg bg-white/5 hover:bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+              >
+                Primeira
+              </button>
+              <button
+                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                disabled={currentPage === 1}
+                className="px-3 py-2 rounded-lg bg-white/5 hover:bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
+              >
+                <ChevronLeft className="w-4 h-4" />
+                Anterior
+              </button>
+              <button
+                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                disabled={currentPage === totalPages}
+                className="px-3 py-2 rounded-lg bg-white/5 hover:bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
+              >
+                Próxima
+                <ChevronRight className="w-4 h-4" />
+              </button>
+              <button
+                onClick={() => setCurrentPage(totalPages)}
+                disabled={currentPage === totalPages}
+                className="px-3 py-2 rounded-lg bg-white/5 hover:bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+              >
+                Última
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

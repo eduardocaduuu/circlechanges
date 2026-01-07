@@ -1,19 +1,27 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { useStore } from '@/lib/store';
 import type { NormalizedRow } from '@/types';
 import { formatCurrency, formatNumber, exportToCSV } from '@/lib/formatters';
-import { Download, AlertTriangle, Database, Trash2 } from 'lucide-react';
+import { Download, AlertTriangle, Database, Trash2, ChevronLeft, ChevronRight } from 'lucide-react';
 
 interface Props {
   data: NormalizedRow[];
 }
 
+const ROWS_PER_PAGE = 100;
+
 export default function DataView({ data }: Props) {
   const { dataQuality, clearData } = useStore();
+  const [currentPage, setCurrentPage] = useState(1);
 
   const errorsData = useMemo(() => {
     return data.filter(r => r._hasErrors);
   }, [data]);
+
+  const totalPages = Math.ceil(data.length / ROWS_PER_PAGE);
+  const startIndex = (currentPage - 1) * ROWS_PER_PAGE;
+  const endIndex = startIndex + ROWS_PER_PAGE;
+  const paginatedData = data.slice(startIndex, endIndex);
 
   const handleExportAll = () => {
     exportToCSV(
@@ -92,8 +100,13 @@ export default function DataView({ data }: Props) {
 
       {/* Data Table */}
       <div className="glass rounded-xl overflow-hidden">
-        <div className="p-4 border-b border-white/10 flex items-center justify-between">
-          <h3 className="text-lg font-semibold">Dados Filtrados ({data.length} linhas)</h3>
+        <div className="p-4 border-b border-white/10 flex items-center justify-between flex-wrap gap-4">
+          <div>
+            <h3 className="text-lg font-semibold">Dados Filtrados ({data.length} linhas)</h3>
+            <p className="text-sm text-muted-foreground mt-1">
+              Mostrando {startIndex + 1} a {Math.min(endIndex, data.length)} de {data.length}
+            </p>
+          </div>
           <div className="flex gap-2">
             <button
               onClick={handleExportAll}
@@ -129,8 +142,8 @@ export default function DataView({ data }: Props) {
               </tr>
             </thead>
             <tbody className="divide-y divide-white/5">
-              {data.slice(0, 100).map((row, idx) => (
-                <tr key={idx} className={`hover:bg-white/5 ${row._hasErrors ? 'bg-red-500/5' : ''}`}>
+              {paginatedData.map((row, idx) => (
+                <tr key={startIndex + idx} className={`hover:bg-white/5 ${row._hasErrors ? 'bg-red-500/5' : ''}`}>
                   <td className="px-3 py-2">{row.GerenciaCode}</td>
                   <td className="px-3 py-2">{row.NomeRevendedora}</td>
                   <td className="px-3 py-2">{row.CicloLabel}</td>
@@ -146,6 +159,47 @@ export default function DataView({ data }: Props) {
             </tbody>
           </table>
         </div>
+
+        {/* Pagination */}
+        {totalPages > 1 && (
+          <div className="p-4 border-t border-white/10 flex items-center justify-between">
+            <div className="text-sm text-muted-foreground">
+              Página {currentPage} de {totalPages}
+            </div>
+            <div className="flex gap-2">
+              <button
+                onClick={() => setCurrentPage(1)}
+                disabled={currentPage === 1}
+                className="px-3 py-2 rounded-lg bg-white/5 hover:bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+              >
+                Primeira
+              </button>
+              <button
+                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                disabled={currentPage === 1}
+                className="px-3 py-2 rounded-lg bg-white/5 hover:bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
+              >
+                <ChevronLeft className="w-4 h-4" />
+                Anterior
+              </button>
+              <button
+                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                disabled={currentPage === totalPages}
+                className="px-3 py-2 rounded-lg bg-white/5 hover:bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
+              >
+                Próxima
+                <ChevronRight className="w-4 h-4" />
+              </button>
+              <button
+                onClick={() => setCurrentPage(totalPages)}
+                disabled={currentPage === totalPages}
+                className="px-3 py-2 rounded-lg bg-white/5 hover:bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+              >
+                Última
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Errors Table */}
