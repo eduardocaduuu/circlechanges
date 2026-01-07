@@ -4,7 +4,7 @@ import type { NormalizedRow } from '@/types';
 import { calculateOverviewMetrics, calculateProductRanking, groupByCiclo } from '@/lib/aggregations';
 import { formatCurrency, formatNumber, formatCompactNumber } from '@/lib/formatters';
 import { DollarSign, ShoppingBag, TrendingUp, Users, Package, Award } from 'lucide-react';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line, Legend } from 'recharts';
 
 interface Props {
   data: NormalizedRow[];
@@ -38,7 +38,17 @@ export default function OverviewView({ data }: Props) {
     return Array.from(map.entries()).map(([name, value]) => ({ name, value })).sort((a, b) => b.value - a.value);
   }, [data]);
 
-  const COLORS = ['#10b981', '#059669', '#34d399', '#047857', '#6ee7b7'];
+  // Paleta de cores diversificadas e vibrantes
+  const COLORS = [
+    '#10b981', // Verde
+    '#3b82f6', // Azul
+    '#f59e0b', // Laranja
+    '#8b5cf6', // Roxo
+    '#ec4899', // Rosa
+    '#14b8a6', // Teal
+    '#f97316', // Laranja escuro
+    '#6366f1', // Indigo
+  ];
 
   return (
     <div className="space-y-6">
@@ -110,17 +120,29 @@ export default function OverviewView({ data }: Props) {
                 nameKey="name"
                 cx="50%"
                 cy="50%"
-                outerRadius={100}
-                label
-                labelLine={false}
+                outerRadius={90}
+                label={({ percent }) => percent ? `${(percent * 100).toFixed(1)}%` : ''}
+                labelLine={{ stroke: 'rgba(255,255,255,0.5)', strokeWidth: 1 }}
               >
                 {canalData.map((_, index) => (
                   <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                 ))}
               </Pie>
               <Tooltip
-                contentStyle={{ backgroundColor: '#1a1a1a', border: '1px solid rgba(255,255,255,0.1)' }}
-                formatter={(value) => formatCurrency(value as number)}
+                contentStyle={{
+                  backgroundColor: '#1a1a1a',
+                  border: '1px solid rgba(255,255,255,0.1)',
+                  borderRadius: '8px',
+                  padding: '10px'
+                }}
+                formatter={(value: any) => [formatCurrency(value), 'Receita']}
+              />
+              <Legend
+                verticalAlign="bottom"
+                height={36}
+                iconType="circle"
+                formatter={(value) => value.length > 30 ? value.substring(0, 30) + '...' : value}
+                wrapperStyle={{ fontSize: '12px' }}
               />
             </PieChart>
           </ResponsiveContainer>
