@@ -68,26 +68,30 @@ npm run preview
 
 A planilha Excel deve conter as seguintes colunas:
 
-**Obrigatórias:**
-- `Gerencia` - Código da gerência (aceita número 13706 ou string "13706 - NOME")
-- `Setor` - Nome do setor
-- `NomeRevendedora` - Nome do cliente/revendedor
-- `QuantidadePontos` - Pontos acumulados
+**Essenciais:**
 - `CicloCaptacao` - Ciclo no formato MM/YYYY
 - `CodigoProduto` - SKU do produto (4 ou 5 dígitos)
 - `NomeProduto` - Nome do produto
 - `Tipo` - Tipo da transação: "Venda", "Brinde" ou "Doação"
 - `QuantidadeItens` - Quantidade de itens
-- `ValorPraticado` - Valor unitário praticado
+- `ValorPraticado` - Valor TOTAL da linha (não é unitário!)
 - `Meio Captacao` - Canal de venda
 - `Tipo Entrega` - Tipo de entrega
 
-**Opcionais:**
-- `DataCaptacao` - Data da transação (usado para agrupar cestas)
-- `CodigoRevendedora` - Código do revendedor
-- `CicloFaturamento` - Ciclo de faturamento (ignorado)
-- `Faturamento` - Valor de faturamento (ignorado)
-- `ValorVenda` - Valor de venda (ignorado)
+**Identificação do Cliente (precisa de pelo menos uma):**
+- `NomeRevendedora` - Nome do cliente/revendedor (preferencial)
+- `CodigoRevendedora` - Código único do revendedor (usado como fallback)
+
+**Opcionais (mas recomendadas):**
+- `Gerencia` - Código da gerência (aceita número 13706 ou string "13706 - NOME")
+- `Setor` - Nome do setor
+- `QuantidadePontos` - Pontos acumulados
+- `DataCaptacao` - Data da transação (usado para agrupar cestas no Market Basket)
+
+**Ignoradas (não utilizadas):**
+- `CicloFaturamento` - Ciclo de faturamento
+- `Faturamento` - Valor de faturamento
+- `ValorVenda` - Valor de venda
 
 ### Regras de Negócio Importantes
 
@@ -98,9 +102,10 @@ A planilha Excel deve conter as seguintes colunas:
 - `ValorLinhaVenda = ValorPraticado` (se Tipo == Venda, **NÃO multiplicar** por quantidade)
 
 #### 2. Normalização de Dados
-- **GerenciaCode**: Extraí dos primeiros 5 dígitos da coluna Gerencia
+- **GerenciaCode**: Extraí dos primeiros 5 dígitos da coluna Gerencia (aceita string ou número)
 - **SKU**: Padronizado para 5 dígitos com zeros à esquerda
 - **CicloCaptacao**: Parseado para MM/YYYY com validação
+- **NomeRevendedora**: Se ausente, usa `CLIENTE_{CodigoRevendedora}` como fallback
 - **Meio Captacao**: Normalizado (hífens e espaços consistentes)
 - **Tipo Entrega**: Categorizado em FRETE/RETIRADA/UNKNOWN
 
