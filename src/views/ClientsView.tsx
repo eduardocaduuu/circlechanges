@@ -3,16 +3,19 @@ import { useStore } from '@/lib/store';
 import type { NormalizedRow, ClientSegment } from '@/types';
 import { calculateClientMetrics } from '@/lib/aggregations';
 import { formatCurrency, formatNumber, exportToCSV } from '@/lib/formatters';
-import { Download, ArrowUpDown } from 'lucide-react';
+import { Download, ArrowUpDown, ChevronLeft, ChevronRight } from 'lucide-react';
 
 interface Props {
   data: NormalizedRow[];
 }
 
+const CLIENTS_PER_PAGE = 100;
+
 export default function ClientsView({ data }: Props) {
   const { filters } = useStore();
   const [sortField, setSortField] = useState<keyof any>('receitaTotal');
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc');
+  const [currentPage, setCurrentPage] = useState(1);
 
   const clients = useMemo(() =>
     calculateClientMetrics(data, filters.incluirBrindesDoacao),
@@ -26,6 +29,11 @@ export default function ClientsView({ data }: Props) {
       return sortDir === 'asc' ? (aVal > bVal ? 1 : -1) : (aVal < bVal ? 1 : -1);
     });
   }, [clients, sortField, sortDir]);
+
+  const totalPages = Math.ceil(sortedClients.length / CLIENTS_PER_PAGE);
+  const startIndex = (currentPage - 1) * CLIENTS_PER_PAGE;
+  const endIndex = startIndex + CLIENTS_PER_PAGE;
+  const paginatedClients = sortedClients.slice(startIndex, endIndex);
 
   const segmentCounts = useMemo(() => {
     const counts: Record<ClientSegment, number> = {
@@ -78,8 +86,13 @@ export default function ClientsView({ data }: Props) {
 
       {/* Table */}
       <div className="glass rounded-xl overflow-hidden">
-        <div className="p-4 border-b border-white/10 flex items-center justify-between">
-          <h3 className="text-lg font-semibold">Clientes ({sortedClients.length})</h3>
+        <div className="p-4 border-b border-white/10 flex items-center justify-between flex-wrap gap-4">
+          <div>
+            <h3 className="text-lg font-semibold">Clientes ({sortedClients.length})</h3>
+            <p className="text-sm text-muted-foreground mt-1">
+              Mostrando {startIndex + 1} a {Math.min(endIndex, sortedClients.length)} de {sortedClients.length}
+            </p>
+          </div>
           <button
             onClick={handleExport}
             className="px-4 py-2 bg-gradient-green rounded-lg hover:opacity-90 transition-opacity flex items-center gap-2 text-sm"
@@ -103,8 +116,8 @@ export default function ClientsView({ data }: Props) {
               </tr>
             </thead>
             <tbody className="divide-y divide-white/5">
-              {sortedClients.slice(0, 100).map((client, idx) => (
-                <tr key={idx} className="hover:bg-white/5 transition-colors">
+              {paginatedClients.map((client, idx) => (
+                <tr key={startIndex + idx} className="hover:bg-white/5 transition-colors">
                   <td className="px-4 py-3 text-sm">{client.NomeRevendedora}</td>
                   <td className="px-4 py-3"><SegmentBadge segment={client.segmento} /></td>
                   <td className="px-4 py-3 text-sm">{client.score}</td>
@@ -117,6 +130,47 @@ export default function ClientsView({ data }: Props) {
             </tbody>
           </table>
         </div>
+
+        {/* Pagination */}
+        {totalPages > 1 && (
+          <div className="p-4 border-t border-white/10 flex items-center justify-between">
+            <div className="text-sm text-muted-foreground">
+              Página {currentPage} de {totalPages}
+            </div>
+            <div className="flex gap-2">
+              <button
+                onClick={() => setCurrentPage(1)}
+                disabled={currentPage === 1}
+                className="px-3 py-2 rounded-lg bg-white/5 hover:bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+              >
+                Primeira
+              </button>
+              <button
+                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                disabled={currentPage === 1}
+                className="px-3 py-2 rounded-lg bg-white/5 hover:bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
+              >
+                <ChevronLeft className="w-4 h-4" />
+                Anterior
+              </button>
+              <button
+                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                disabled={currentPage === totalPages}
+                className="px-3 py-2 rounded-lg bg-white/5 hover:bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
+              >
+                Próxima
+                <ChevronRight className="w-4 h-4" />
+              </button>
+              <button
+                onClick={() => setCurrentPage(totalPages)}
+                disabled={currentPage === totalPages}
+                className="px-3 py-2 rounded-lg bg-white/5 hover:bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+              >
+                Última
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

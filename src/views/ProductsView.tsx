@@ -1,17 +1,20 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { useStore } from '@/lib/store';
 import type { NormalizedRow } from '@/types';
 import { calculateProductRanking } from '@/lib/aggregations';
 import { formatCurrency, formatNumber, exportToCSV } from '@/lib/formatters';
-import { Download } from 'lucide-react';
+import { Download, ChevronLeft, ChevronRight } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
 interface Props {
   data: NormalizedRow[];
 }
 
+const PRODUCTS_PER_PAGE = 100;
+
 export default function ProductsView({ data }: Props) {
   const { filters } = useStore();
+  const [currentPage, setCurrentPage] = useState(1);
 
   const products = useMemo(() =>
     calculateProductRanking(data, filters.incluirBrindesDoacao),
@@ -19,6 +22,11 @@ export default function ProductsView({ data }: Props) {
   );
 
   const top20 = products.slice(0, 20);
+
+  const totalPages = Math.ceil(products.length / PRODUCTS_PER_PAGE);
+  const startIndex = (currentPage - 1) * PRODUCTS_PER_PAGE;
+  const endIndex = startIndex + PRODUCTS_PER_PAGE;
+  const paginatedProducts = products.slice(startIndex, endIndex);
 
   return (
     <div className="space-y-6">
@@ -61,6 +69,9 @@ export default function ProductsView({ data }: Props) {
       <div className="glass rounded-xl overflow-hidden">
         <div className="p-4 border-b border-white/10">
           <h3 className="text-lg font-semibold">Todos os Produtos ({products.length})</h3>
+          <p className="text-sm text-muted-foreground mt-1">
+            Mostrando {startIndex + 1} a {Math.min(endIndex, products.length)} de {products.length}
+          </p>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full">
@@ -75,8 +86,8 @@ export default function ProductsView({ data }: Props) {
               </tr>
             </thead>
             <tbody className="divide-y divide-white/5">
-              {products.slice(0, 100).map((p, idx) => (
-                <tr key={idx} className="hover:bg-white/5">
+              {paginatedProducts.map((p, idx) => (
+                <tr key={startIndex + idx} className="hover:bg-white/5">
                   <td className="px-4 py-3 text-sm font-mono">{p.SKU}</td>
                   <td className="px-4 py-3 text-sm">{p.NomeProduto}</td>
                   <td className="px-4 py-3 text-sm text-right">{formatNumber(p.quantidade)}</td>
@@ -88,6 +99,47 @@ export default function ProductsView({ data }: Props) {
             </tbody>
           </table>
         </div>
+
+        {/* Pagination */}
+        {totalPages > 1 && (
+          <div className="p-4 border-t border-white/10 flex items-center justify-between">
+            <div className="text-sm text-muted-foreground">
+              Página {currentPage} de {totalPages}
+            </div>
+            <div className="flex gap-2">
+              <button
+                onClick={() => setCurrentPage(1)}
+                disabled={currentPage === 1}
+                className="px-3 py-2 rounded-lg bg-white/5 hover:bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+              >
+                Primeira
+              </button>
+              <button
+                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                disabled={currentPage === 1}
+                className="px-3 py-2 rounded-lg bg-white/5 hover:bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
+              >
+                <ChevronLeft className="w-4 h-4" />
+                Anterior
+              </button>
+              <button
+                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                disabled={currentPage === totalPages}
+                className="px-3 py-2 rounded-lg bg-white/5 hover:bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
+              >
+                Próxima
+                <ChevronRight className="w-4 h-4" />
+              </button>
+              <button
+                onClick={() => setCurrentPage(totalPages)}
+                disabled={currentPage === totalPages}
+                className="px-3 py-2 rounded-lg bg-white/5 hover:bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+              >
+                Última
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
