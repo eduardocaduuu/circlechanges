@@ -54,9 +54,9 @@ export interface NormalizedRow {
   DataCaptacao: string | null; // "YYYY-MM-DD" ou null
 
   // Quantidades e valores
-  QuantidadeItens: number; // >= 0
-  ValorPraticado: number; // >= 0
-  ValorLinhaVenda: number; // qty * valorPraticado se Tipo == "Venda", senão 0
+  QuantidadeItens: number; // >= 0 (quantidade de itens)
+  ValorPraticado: number; // >= 0 (ATENÇÃO: já é o valor TOTAL da linha, não unitário!)
+  ValorLinhaVenda: number; // ValorPraticado se Tipo == "Venda", senão 0 (NÃO multiplicar por qty!)
 
   // Canal e logística
   MeioCaptacao: string; // Normalizado

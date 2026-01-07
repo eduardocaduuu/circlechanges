@@ -94,7 +94,8 @@ A planilha Excel deve conter as seguintes colunas:
 #### 1. Cálculo de Valores
 - **Somente** transações com `Tipo = "Venda"` entram em cálculos monetários
 - Para `Tipo != "Venda"`, `ValorLinhaVenda = 0`
-- `ValorLinhaVenda = QuantidadeItens * ValorPraticado` (apenas se Venda)
+- **IMPORTANTE:** `ValorPraticado` JÁ É o valor TOTAL da linha (não é unitário!)
+- `ValorLinhaVenda = ValorPraticado` (se Tipo == Venda, **NÃO multiplicar** por quantidade)
 
 #### 2. Normalização de Dados
 - **GerenciaCode**: Extraí dos primeiros 5 dígitos da coluna Gerencia

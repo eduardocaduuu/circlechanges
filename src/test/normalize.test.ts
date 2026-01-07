@@ -91,27 +91,26 @@ describe('normalizeTipo', () => {
 });
 
 describe('ValorLinhaVenda calculation', () => {
-  it('should calculate correctly for Venda type', () => {
-    // This test verifies the rule: ValorLinhaVenda = qty * valorPraticado only if Tipo == "Venda"
-    const qty = 10;
-    const valorPraticado = 100;
+  it('should use ValorPraticado directly for Venda type (not multiply by quantity)', () => {
+    // IMPORTANTE: ValorPraticado JÁ É o valor total da linha
+    // NÃO multiplicar por quantidade!
+    const valorPraticado = 55.41; // Valor TOTAL de 3 itens
     const tipo = 'Venda';
 
-    const valorLinhaVenda = tipo === 'Venda' ? qty * valorPraticado : 0;
+    const valorLinhaVenda = tipo === 'Venda' ? valorPraticado : 0;
 
-    expect(valorLinhaVenda).toBe(1000);
+    expect(valorLinhaVenda).toBe(55.41);
   });
 
   it('should be zero for non-Venda types', () => {
     // This test verifies the rule: ValorLinhaVenda = 0 if Tipo != "Venda"
-    const qty = 10;
     const valorPraticado = 100;
     const tiposBrinde = normalizeTipo('Brinde');
     const tiposDoacao = normalizeTipo('Doação');
     const tiposOutro = normalizeTipo('Outro');
 
-    expect(tiposBrinde === 'Venda' ? qty * valorPraticado : 0).toBe(0);
-    expect(tiposDoacao === 'Venda' ? qty * valorPraticado : 0).toBe(0);
-    expect(tiposOutro === 'Venda' ? qty * valorPraticado : 0).toBe(0);
+    expect(tiposBrinde === 'Venda' ? valorPraticado : 0).toBe(0);
+    expect(tiposDoacao === 'Venda' ? valorPraticado : 0).toBe(0);
+    expect(tiposOutro === 'Venda' ? valorPraticado : 0).toBe(0);
   });
 });

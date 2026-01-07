@@ -143,7 +143,8 @@ function normalizeData(rawData: RawRow[]): {
     }
 
     // 12. Valor Linha Venda (IMPORTANTE: só se Tipo == "Venda")
-    const ValorLinhaVenda = Tipo === 'Venda' ? QuantidadeItens * ValorPraticado : 0;
+    // ATENÇÃO: ValorPraticado JÁ É o valor total da linha (não multiplicar por quantidade)
+    const ValorLinhaVenda = Tipo === 'Venda' ? ValorPraticado : 0;
 
     // 13. Meio Captação
     const MeioCaptacao = normalizeMeioCaptacao(raw['Meio Captacao']);
