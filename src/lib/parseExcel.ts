@@ -46,6 +46,8 @@ export async function parseExcelFile(
         if (rawData.length > 0) {
           console.log('Primeira linha do Excel:', rawData[0]);
           console.log('Colunas encontradas:', Object.keys(rawData[0]));
+          console.log('Tem CodigoRevendedora?', 'CodigoRevendedora' in rawData[0]);
+          console.log('Tem NomeRevendedora?', 'NomeRevendedora' in rawData[0]);
         }
 
         // Normaliza cada linha
@@ -113,8 +115,14 @@ function normalizeData(rawData: RawRow[]): {
     // 2. Setor
     const Setor = raw.Setor?.trim() || 'UNKNOWN';
 
-    // 3. Nome Revendedora
-    const NomeRevendedora = normalizeNomeRevendedora(raw.NomeRevendedora);
+    // 3. Nome Revendedora (ou usa CodigoRevendedora como fallback)
+    let NomeRevendedora = normalizeNomeRevendedora(raw.NomeRevendedora);
+
+    // Se não tem NomeRevendedora, tenta usar CodigoRevendedora
+    if (NomeRevendedora === 'UNKNOWN' && raw.CodigoRevendedora) {
+      NomeRevendedora = `CLIENTE_${String(raw.CodigoRevendedora).trim()}`;
+    }
+
     if (NomeRevendedora === 'UNKNOWN') {
       errors.push('Nome revendedora ausente');
       quality.erros.camposFaltantes++;
@@ -126,6 +134,8 @@ function normalizeData(rawData: RawRow[]): {
         GerenciaCode,
         NomeRevendedora,
         Setor,
+        usouCodigoRevendedora: NomeRevendedora.startsWith('CLIENTE_'),
+        CodigoRevendedoraRaw: raw.CodigoRevendedora,
       });
     }
 

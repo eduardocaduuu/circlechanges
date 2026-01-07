@@ -48,9 +48,30 @@ export default function DataView({ data }: Props) {
           <div className="mb-4">
             <p className="text-sm font-medium mb-2 text-blue-400">Colunas Encontradas:</p>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs font-mono bg-black/30 p-3 rounded">
-              {Object.keys(rawSample).map((col) => (
-                <div key={col} className="text-blue-300">• {col}</div>
-              ))}
+              {Object.keys(rawSample).map((col) => {
+                const isCritical = ['NomeRevendedora', 'CodigoRevendedora', 'Gerencia', 'Setor'].includes(col);
+                return (
+                  <div key={col} className={isCritical ? 'text-green-400 font-bold' : 'text-blue-300'}>
+                    • {col} {isCritical && '✓'}
+                  </div>
+                );
+              })}
+            </div>
+            <div className="mt-2 text-xs">
+              <p className="text-muted-foreground">
+                Colunas importantes: {' '}
+                <span className={rawSample.NomeRevendedora ? 'text-green-400' : 'text-red-400'}>
+                  NomeRevendedora {rawSample.NomeRevendedora ? '✓' : '✗'}
+                </span>
+                {' | '}
+                <span className={rawSample.CodigoRevendedora ? 'text-green-400' : 'text-red-400'}>
+                  CodigoRevendedora {rawSample.CodigoRevendedora ? '✓' : '✗'}
+                </span>
+                {' | '}
+                <span className={rawSample.Gerencia ? 'text-green-400' : 'text-red-400'}>
+                  Gerencia {rawSample.Gerencia ? '✓' : '✗'}
+                </span>
+              </p>
             </div>
           </div>
 
