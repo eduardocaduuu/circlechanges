@@ -5,7 +5,7 @@ import { z } from 'zod';
 // ============================================================================
 
 export const RawRowSchema = z.object({
-  Gerencia: z.string().optional(),
+  Gerencia: z.union([z.string(), z.number()]).optional(),
   Setor: z.string().optional(),
   CodigoRevendedora: z.union([z.string(), z.number()]).optional(),
   NomeRevendedora: z.string().optional(),
@@ -167,6 +167,7 @@ export interface BasketPair {
   confianca: number; // suporte(A∪B) / suporte(A)
   lift: number; // confiança / suporte(B)
   occurrences: number; // Número de vezes que aparecem juntos
+  clientes: string[]; // Lista de clientes que compraram esse par
 }
 
 export interface BasketTransaction {

@@ -69,7 +69,7 @@ npm run preview
 A planilha Excel deve conter as seguintes colunas:
 
 **Obrigatórias:**
-- `Gerencia` - Código da gerência (ex: "13706 - NOME")
+- `Gerencia` - Código da gerência (aceita número 13706 ou string "13706 - NOME")
 - `Setor` - Nome do setor
 - `NomeRevendedora` - Nome do cliente/revendedor
 - `QuantidadePontos` - Pontos acumulados

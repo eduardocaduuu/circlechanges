@@ -15,11 +15,11 @@ import {
 } from './normalize';
 
 /**
- * Parse arquivo Excel e retorna dados normalizados + quality info
+ * Parse arquivo Excel e retorna dados normalizados + quality info + amostra raw
  */
 export async function parseExcelFile(
   file: File
-): Promise<{ data: NormalizedRow[]; quality: DataQuality }> {
+): Promise<{ data: NormalizedRow[]; quality: DataQuality; rawSample?: any }> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
 
@@ -42,10 +42,19 @@ export async function parseExcelFile(
           defval: undefined,
         });
 
+        // Debug: Log primeira linha para verificar estrutura
+        if (rawData.length > 0) {
+          console.log('Primeira linha do Excel:', rawData[0]);
+          console.log('Colunas encontradas:', Object.keys(rawData[0]));
+        }
+
         // Normaliza cada linha
         const { normalized, quality } = normalizeData(rawData);
 
-        resolve({ data: normalized, quality });
+        // Salva amostra dos dados brutos para debug
+        const rawSample = rawData.length > 0 ? rawData[0] : null;
+
+        resolve({ data: normalized, quality, rawSample });
       } catch (error) {
         reject(error);
       }
@@ -85,6 +94,15 @@ function normalizeData(rawData: RawRow[]): {
   rawData.forEach((raw, index) => {
     const errors: string[] = [];
 
+    // Debug primeira linha
+    if (index === 0) {
+      console.log('Debug primeira linha raw:', {
+        Gerencia: raw.Gerencia,
+        NomeRevendedora: raw.NomeRevendedora,
+        Setor: raw.Setor,
+      });
+    }
+
     // 1. Gerência
     const GerenciaCode = extractGerenciaCode(raw.Gerencia);
     if (GerenciaCode === 'UNKNOWN') {
@@ -100,6 +118,15 @@ function normalizeData(rawData: RawRow[]): {
     if (NomeRevendedora === 'UNKNOWN') {
       errors.push('Nome revendedora ausente');
       quality.erros.camposFaltantes++;
+    }
+
+    // Debug primeira linha normalizada
+    if (index === 0) {
+      console.log('Debug primeira linha normalizada:', {
+        GerenciaCode,
+        NomeRevendedora,
+        Setor,
+      });
     }
 
     // 4. Pontos

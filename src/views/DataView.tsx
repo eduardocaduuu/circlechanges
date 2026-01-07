@@ -9,7 +9,7 @@ interface Props {
 }
 
 export default function DataView({ data }: Props) {
-  const { dataQuality, clearData } = useStore();
+  const { dataQuality, clearData, rawSample } = useStore();
 
   const errorsData = useMemo(() => {
     return data.filter(r => r._hasErrors);
@@ -37,6 +37,32 @@ export default function DataView({ data }: Props) {
 
   return (
     <div className="space-y-6">
+      {/* Debug Raw Data */}
+      {rawSample && (
+        <div className="glass rounded-xl p-6 bg-blue-500/5 border border-blue-500/30">
+          <h3 className="text-lg font-semibold mb-4 flex items-center gap-2 text-blue-400">
+            <Database className="w-5 h-5" />
+            Debug: Dados Brutos da Planilha
+          </h3>
+
+          <div className="mb-4">
+            <p className="text-sm font-medium mb-2 text-blue-400">Colunas Encontradas:</p>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs font-mono bg-black/30 p-3 rounded">
+              {Object.keys(rawSample).map((col) => (
+                <div key={col} className="text-blue-300">• {col}</div>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <p className="text-sm font-medium mb-2 text-blue-400">Primeira Linha (Amostra):</p>
+            <div className="text-xs font-mono bg-black/30 p-3 rounded overflow-x-auto">
+              <pre className="text-blue-200">{JSON.stringify(rawSample, null, 2)}</pre>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Quality Overview */}
       {dataQuality && (
         <div className="glass rounded-xl p-6">

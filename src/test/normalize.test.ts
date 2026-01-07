@@ -30,6 +30,11 @@ describe('extractGerenciaCode', () => {
     expect(extractGerenciaCode('13707 - OUTRA GERENCIA')).toBe('13707');
   });
 
+  it('should handle numeric gerencia codes', () => {
+    expect(extractGerenciaCode(13706)).toBe('13706');
+    expect(extractGerenciaCode(13707)).toBe('13707');
+  });
+
   it('should return UNKNOWN for invalid inputs', () => {
     expect(extractGerenciaCode(undefined)).toBe('UNKNOWN');
     expect(extractGerenciaCode('')).toBe('UNKNOWN');

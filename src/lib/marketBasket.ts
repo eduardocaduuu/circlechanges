@@ -76,8 +76,9 @@ export function calculateFrequentPairs(
     });
   });
 
-  // 2. Gerar todos os pares possíveis e calcular ocorrências
+  // 2. Gerar todos os pares possíveis e calcular ocorrências + clientes
   const pairOccurrences = new Map<string, number>();
+  const pairClientes = new Map<string, Set<string>>();
 
   baskets.forEach((basket) => {
     const uniqueItems = Array.from(new Set(basket.items)).sort();
@@ -90,6 +91,12 @@ export function calculateFrequentPairs(
         const pairKey = `${itemA}|${itemB}`;
 
         pairOccurrences.set(pairKey, (pairOccurrences.get(pairKey) || 0) + 1);
+
+        // Adicionar cliente ao par
+        if (!pairClientes.has(pairKey)) {
+          pairClientes.set(pairKey, new Set());
+        }
+        pairClientes.get(pairKey)!.add(basket.NomeRevendedora);
       }
     }
   });
@@ -123,6 +130,7 @@ export function calculateFrequentPairs(
       confianca,
       lift,
       occurrences,
+      clientes: Array.from(pairClientes.get(pairKey) || []),
     });
   });
 

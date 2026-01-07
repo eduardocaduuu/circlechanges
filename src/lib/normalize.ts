@@ -2,12 +2,17 @@ import type { CicloInfo } from '@/types';
 
 /**
  * Extrai os primeiros 5 dígitos da string de Gerência
- * Formato esperado: "13706 - NOME..." ou similar
+ * Formato esperado: "13706 - NOME..." ou similar, ou apenas número 13706
  */
-export function extractGerenciaCode(gerencia: string | undefined): string {
-  if (!gerencia) return 'UNKNOWN';
+export function extractGerenciaCode(gerencia: string | number | undefined): string {
+  if (gerencia === undefined || gerencia === null) return 'UNKNOWN';
 
-  const match = gerencia.match(/\d{5}/);
+  // Converte para string primeiro
+  const gerenciaStr = String(gerencia).trim();
+
+  if (gerenciaStr === '') return 'UNKNOWN';
+
+  const match = gerenciaStr.match(/\d{5}/);
   return match ? match[0] : 'UNKNOWN';
 }
 

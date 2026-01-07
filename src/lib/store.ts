@@ -6,6 +6,7 @@ interface AppState {
   // Data
   rawData: NormalizedRow[];
   dataQuality: DataQuality | null;
+  rawSample: any | null; // Amostra dos dados brutos para debug
   isLoading: boolean;
   error: string | null;
 
@@ -16,7 +17,7 @@ interface AppState {
   activeTab: 'overview' | 'clients' | 'products' | 'basket' | 'predictions' | 'data';
 
   // Actions
-  setData: (data: NormalizedRow[], quality: DataQuality) => void;
+  setData: (data: NormalizedRow[], quality: DataQuality, rawSample?: any) => void;
   setLoading: (loading: boolean) => void;
   setError: (error: string | null) => void;
   setFilters: (filters: Partial<Filters>) => void;
@@ -42,16 +43,18 @@ export const useStore = create<AppState>()(
       // Initial state
       rawData: [],
       dataQuality: null,
+      rawSample: null,
       isLoading: false,
       error: null,
       filters: defaultFilters,
       activeTab: 'overview',
 
       // Actions
-      setData: (data, quality) =>
+      setData: (data, quality, rawSample) =>
         set({
           rawData: data,
           dataQuality: quality,
+          rawSample: rawSample || null,
           isLoading: false,
           error: null,
         }),
@@ -77,6 +80,7 @@ export const useStore = create<AppState>()(
         set({
           rawData: [],
           dataQuality: null,
+          rawSample: null,
           error: null,
           filters: defaultFilters,
         }),

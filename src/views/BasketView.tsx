@@ -60,10 +60,12 @@ export default function BasketView({ data }: Props) {
                 NomeA: p.nomeA,
                 ProdutoB: p.itemB,
                 NomeB: p.nomeB,
+                Lift: p.lift,
                 Ocorrencias: p.occurrences,
                 Suporte: p.suporte,
                 Confianca: p.confianca,
-                Lift: p.lift,
+                NumeroClientes: p.clientes.length,
+                Clientes: p.clientes.join('; '),
               })),
               'pares-produtos.csv'
             )}
@@ -80,10 +82,14 @@ export default function BasketView({ data }: Props) {
               <tr>
                 <th className="px-4 py-3 text-left text-sm font-medium">Produto A</th>
                 <th className="px-4 py-3 text-left text-sm font-medium">Produto B</th>
+                <th className="px-6 py-3 text-center text-sm font-bold bg-gradient-green/20">
+                  Lift
+                  <div className="text-xs font-normal text-muted-foreground">Força da Associação</div>
+                </th>
                 <th className="px-4 py-3 text-right text-sm font-medium">Ocorrências</th>
                 <th className="px-4 py-3 text-right text-sm font-medium">Suporte</th>
                 <th className="px-4 py-3 text-right text-sm font-medium">Confiança</th>
-                <th className="px-4 py-3 text-right text-sm font-medium">Lift</th>
+                <th className="px-4 py-3 text-left text-sm font-medium">Clientes ({pairs.length > 0 ? pairs[0].clientes.length : 0})</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-white/5">
@@ -97,13 +103,26 @@ export default function BasketView({ data }: Props) {
                     <div className="font-mono text-xs text-muted-foreground">{pair.itemB}</div>
                     <div className="text-sm">{pair.nomeB}</div>
                   </td>
+                  <td className="px-6 py-3 bg-gradient-green/10">
+                    <div className="flex flex-col items-center">
+                      <span className={`text-2xl font-bold ${pair.lift > 1 ? 'text-green-400' : 'text-red-400'}`}>
+                        {formatNumber(pair.lift, 2)}
+                      </span>
+                      <span className="text-xs text-muted-foreground">
+                        {pair.lift > 1.5 ? 'Forte' : pair.lift > 1 ? 'Moderado' : 'Fraco'}
+                      </span>
+                    </div>
+                  </td>
                   <td className="px-4 py-3 text-sm text-right">{pair.occurrences}</td>
                   <td className="px-4 py-3 text-sm text-right">{formatPercent(pair.suporte * 100, 2)}</td>
                   <td className="px-4 py-3 text-sm text-right">{formatPercent(pair.confianca * 100, 1)}</td>
-                  <td className="px-4 py-3 text-sm text-right font-medium">
-                    <span className={pair.lift > 1 ? 'text-green-400' : 'text-red-400'}>
-                      {formatNumber(pair.lift, 2)}
-                    </span>
+                  <td className="px-4 py-3 text-sm">
+                    <div className="flex flex-col gap-1">
+                      <span className="font-medium text-green-400">{pair.clientes.length} clientes</span>
+                      <span className="text-xs text-muted-foreground line-clamp-2" title={pair.clientes.join(', ')}>
+                        {pair.clientes.slice(0, 3).join(', ')}{pair.clientes.length > 3 ? '...' : ''}
+                      </span>
+                    </div>
                   </td>
                 </tr>
               ))}
