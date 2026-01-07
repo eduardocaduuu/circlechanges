@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { useStore } from '@/lib/store';
-import { Search, X, Filter, RotateCcw } from 'lucide-react';
+import { Search, Filter, RotateCcw } from 'lucide-react';
 import { debounce } from '@/lib/formatters';
 
 export default function FiltersBar() {

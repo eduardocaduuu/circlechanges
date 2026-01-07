@@ -3,7 +3,7 @@ import { useStore } from '@/lib/store';
 import type { NormalizedRow } from '@/types';
 import { generateBaskets, calculateFrequentPairs, calculateBasketMetrics } from '@/lib/marketBasket';
 import { formatNumber, formatPercent, exportToCSV } from '@/lib/formatters';
-import { Download, ShoppingCart } from 'lucide-react';
+import { Download } from 'lucide-react';
 
 interface Props {
   data: NormalizedRow[];

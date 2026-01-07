@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 import { useStore } from '@/lib/store';
 import type { NormalizedRow, ClientSegment } from '@/types';
 import { calculateClientMetrics } from '@/lib/aggregations';
-import { formatCurrency, formatNumber, formatPercent, exportToCSV } from '@/lib/formatters';
+import { formatCurrency, formatNumber, exportToCSV } from '@/lib/formatters';
 import { Download, ArrowUpDown } from 'lucide-react';
 
 interface Props {
@@ -122,7 +122,7 @@ export default function ClientsView({ data }: Props) {
   );
 }
 
-function SortHeader({ label, field, current, dir, onSort }: any) {
+function SortHeader({ label, field, current, onSort }: any) {
   return (
     <th
       className="px-4 py-3 text-left text-sm font-medium cursor-pointer hover:bg-white/5"

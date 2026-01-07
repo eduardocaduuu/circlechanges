@@ -4,7 +4,6 @@ import type { NormalizedRow } from '@/types';
 import { generatePredictions, findGrowingProducts } from '@/lib/regression';
 import { formatNumber, exportToCSV } from '@/lib/formatters';
 import { Download, TrendingUp, TrendingDown, Minus } from 'lucide-react';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 
 interface Props {
   data: NormalizedRow[];

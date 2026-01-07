@@ -106,9 +106,12 @@ describe('ValorLinhaVenda calculation', () => {
     // This test verifies the rule: ValorLinhaVenda = 0 if Tipo != "Venda"
     const qty = 10;
     const valorPraticado = 100;
+    const tiposBrinde = normalizeTipo('Brinde');
+    const tiposDoacao = normalizeTipo('Doação');
+    const tiposOutro = normalizeTipo('Outro');
 
-    expect('Brinde' === 'Venda' ? qty * valorPraticado : 0).toBe(0);
-    expect('Doação' === 'Venda' ? qty * valorPraticado : 0).toBe(0);
-    expect('Outro' === 'Venda' ? qty * valorPraticado : 0).toBe(0);
+    expect(tiposBrinde === 'Venda' ? qty * valorPraticado : 0).toBe(0);
+    expect(tiposDoacao === 'Venda' ? qty * valorPraticado : 0).toBe(0);
+    expect(tiposOutro === 'Venda' ? qty * valorPraticado : 0).toBe(0);
   });
 });

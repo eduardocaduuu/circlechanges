@@ -90,10 +90,10 @@ export default function OverviewView({ data }: Props) {
             <BarChart data={topProducts}>
               <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
               <XAxis dataKey="SKU" stroke="#fff" fontSize={12} />
-              <YAxis stroke="#fff" fontSize={12} tickFormatter={(v) => formatCompactNumber(v)} />
+              <YAxis stroke="#fff" fontSize={12} tickFormatter={(v) => formatCompactNumber(v as number)} />
               <Tooltip
                 contentStyle={{ backgroundColor: '#1a1a1a', border: '1px solid rgba(255,255,255,0.1)' }}
-                formatter={(value: number) => formatCurrency(value)}
+                formatter={(value) => formatCurrency(value as number)}
               />
               <Bar dataKey="receita" fill="#10b981" />
             </BarChart>
@@ -111,16 +111,16 @@ export default function OverviewView({ data }: Props) {
                 cx="50%"
                 cy="50%"
                 outerRadius={100}
-                label={(entry) => entry.name}
+                label
                 labelLine={false}
               >
-                {canalData.map((entry, index) => (
+                {canalData.map((_, index) => (
                   <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                 ))}
               </Pie>
               <Tooltip
                 contentStyle={{ backgroundColor: '#1a1a1a', border: '1px solid rgba(255,255,255,0.1)' }}
-                formatter={(value: number) => formatCurrency(value)}
+                formatter={(value) => formatCurrency(value as number)}
               />
             </PieChart>
           </ResponsiveContainer>
@@ -133,10 +133,10 @@ export default function OverviewView({ data }: Props) {
           <LineChart data={cicloData}>
             <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
             <XAxis dataKey="ciclo" stroke="#fff" fontSize={12} />
-            <YAxis stroke="#fff" fontSize={12} tickFormatter={(v) => formatCompactNumber(v)} />
+            <YAxis stroke="#fff" fontSize={12} tickFormatter={(v) => formatCompactNumber(v as number)} />
             <Tooltip
               contentStyle={{ backgroundColor: '#1a1a1a', border: '1px solid rgba(255,255,255,0.1)' }}
-              formatter={(value: number) => formatCurrency(value)}
+              formatter={(value) => formatCurrency(value as number)}
             />
             <Line type="monotone" dataKey="receita" stroke="#10b981" strokeWidth={2} />
           </LineChart>

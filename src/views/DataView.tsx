@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import { useStore } from '@/lib/store';
 import type { NormalizedRow } from '@/types';
 import { formatCurrency, formatNumber, exportToCSV } from '@/lib/formatters';
-import { Download, AlertTriangle, CheckCircle, Database, Trash2 } from 'lucide-react';
+import { Download, AlertTriangle, Database, Trash2 } from 'lucide-react';
 
 interface Props {
   data: NormalizedRow[];

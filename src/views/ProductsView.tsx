@@ -47,11 +47,11 @@ export default function ProductsView({ data }: Props) {
         <ResponsiveContainer width="100%" height={400}>
           <BarChart data={top20} layout="vertical">
             <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
-            <XAxis type="number" stroke="#fff" fontSize={12} tickFormatter={(v) => `R$ ${(v/1000).toFixed(0)}K`} />
+            <XAxis type="number" stroke="#fff" fontSize={12} tickFormatter={(v) => `R$ ${((v as number)/1000).toFixed(0)}K`} />
             <YAxis type="category" dataKey="SKU" stroke="#fff" fontSize={11} width={60} />
             <Tooltip
               contentStyle={{ backgroundColor: '#1a1a1a', border: '1px solid rgba(255,255,255,0.1)' }}
-              formatter={(value: number) => formatCurrency(value)}
+              formatter={(value) => formatCurrency(value as number)}
             />
             <Bar dataKey="receita" fill="#10b981" />
           </BarChart>

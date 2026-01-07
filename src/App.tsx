@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useMemo } from 'react';
 import { useStore } from '@/lib/store';
 import { applyFilters } from '@/lib/parseExcel';
 import FileUpload from '@/components/FileUpload';

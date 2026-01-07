@@ -144,8 +144,6 @@ export function calculateClientMetrics(
   data: NormalizedRow[],
   incluirBrindesDoacao = false
 ): ClientMetrics[] {
-  const dataParaAnalise = incluirBrindesDoacao ? data : data.filter((r) => r.Tipo === 'Venda');
-
   const clienteMap = new Map<
     string,
     {
@@ -180,7 +178,6 @@ export function calculateClientMetrics(
       existing.canais.set(r.MeioCaptacao, canalCount + 1);
 
       // Pontos: pegar o máximo por ciclo
-      const key = `${r.NomeRevendedora}|${r.CicloLabel}`;
       existing.pontos = Math.max(existing.pontos, r.QuantidadePontos);
     } else {
       const canais = new Map<string, number>();
@@ -343,8 +340,6 @@ function percentile(arr: number[], p: number): number {
  * Agrupa dados por ciclo para análise temporal
  */
 export function groupByCiclo(data: NormalizedRow[], incluirBrindesDoacao = false) {
-  const dataParaAnalise = incluirBrindesDoacao ? data : data.filter((r) => r.Tipo === 'Venda');
-
   const cicloMap = new Map<
     string,
     {
