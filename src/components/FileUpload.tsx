@@ -18,8 +18,8 @@ export default function FileUpload() {
       setError(null);
 
       try {
-        const { data, quality, rawSample } = await parseExcelFile(file);
-        setData(data, quality, rawSample);
+        const { data, quality } = await parseExcelFile(file);
+        setData(data, quality);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Erro ao processar arquivo');
       }

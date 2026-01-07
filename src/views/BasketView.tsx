@@ -29,46 +29,6 @@ export default function BasketView({ data }: Props) {
 
   return (
     <div className="space-y-6">
-      {/* Debug Info */}
-      <div className="glass rounded-xl p-4 bg-yellow-500/5 border border-yellow-500/30">
-        <h3 className="text-sm font-semibold mb-2 text-yellow-400">Debug Market Basket</h3>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-xs">
-          <div>
-            <span className="text-muted-foreground">Linhas de dados:</span>
-            <span className="ml-2 font-mono text-yellow-300">{data.length}</span>
-          </div>
-          <div>
-            <span className="text-muted-foreground">Cestas geradas:</span>
-            <span className="ml-2 font-mono text-yellow-300">{baskets.length}</span>
-          </div>
-          <div>
-            <span className="text-muted-foreground">Pares encontrados:</span>
-            <span className="ml-2 font-mono text-yellow-300">{pairs.length}</span>
-          </div>
-          <div>
-            <span className="text-muted-foreground">Clientes únicos:</span>
-            <span className="ml-2 font-mono text-yellow-300">
-              {new Set(baskets.map(b => b.NomeRevendedora)).size}
-            </span>
-          </div>
-        </div>
-        {baskets.length > 0 && (
-          <div className="mt-3 text-xs">
-            <p className="text-muted-foreground mb-1">Amostra de 3 primeiras cestas:</p>
-            <pre className="bg-black/30 p-2 rounded text-yellow-200 overflow-x-auto">
-              {JSON.stringify(baskets.slice(0, 3).map(b => ({
-                transactionId: b.transactionId,
-                cliente: b.NomeRevendedora,
-                ciclo: b.CicloLabel,
-                data: b.DataCaptacao,
-                numItens: b.items.length,
-                items: b.items
-              })), null, 2)}
-            </pre>
-          </div>
-        )}
-      </div>
-
       {/* Basket Metrics */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <div className="glass rounded-lg p-4">
