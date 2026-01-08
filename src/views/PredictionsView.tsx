@@ -1,16 +1,19 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { useStore } from '@/lib/store';
 import type { NormalizedRow } from '@/types';
 import { generatePredictions, findGrowingProducts } from '@/lib/regression';
 import { formatNumber, exportToCSV } from '@/lib/formatters';
-import { Download, TrendingUp, TrendingDown, Minus } from 'lucide-react';
+import { Download, TrendingUp, TrendingDown, Minus, ChevronLeft, ChevronRight } from 'lucide-react';
 
 interface Props {
   data: NormalizedRow[];
 }
 
+const PREDICTIONS_PER_PAGE = 50;
+
 export default function PredictionsView({ data }: Props) {
   const { filters } = useStore();
+  const [currentPage, setCurrentPage] = useState(1);
 
   const predictions = useMemo(() =>
     generatePredictions(data, filters.incluirBrindesDoacao, 3),
@@ -21,6 +24,11 @@ export default function PredictionsView({ data }: Props) {
     findGrowingProducts(predictions, 10),
     [predictions]
   );
+
+  const totalPages = Math.ceil(predictions.length / PREDICTIONS_PER_PAGE);
+  const startIndex = (currentPage - 1) * PREDICTIONS_PER_PAGE;
+  const endIndex = startIndex + PREDICTIONS_PER_PAGE;
+  const paginatedPredictions = predictions.slice(startIndex, endIndex);
 
   return (
     <div className="space-y-6">
@@ -54,8 +62,13 @@ export default function PredictionsView({ data }: Props) {
 
       {/* All Predictions */}
       <div className="glass rounded-xl overflow-hidden">
-        <div className="p-4 border-b border-white/10 flex items-center justify-between">
-          <h3 className="text-lg font-semibold">Todas as Previsões ({predictions.length} SKUs)</h3>
+        <div className="p-4 border-b border-white/10 flex items-center justify-between flex-wrap gap-4">
+          <div>
+            <h3 className="text-lg font-semibold">Todas as Previsões ({predictions.length} SKUs)</h3>
+            <p className="text-sm text-muted-foreground mt-1">
+              Mostrando {startIndex + 1} a {Math.min(endIndex, predictions.length)} de {predictions.length}
+            </p>
+          </div>
           <button
             onClick={() => exportToCSV(
               predictions.map(p => ({
@@ -88,8 +101,8 @@ export default function PredictionsView({ data }: Props) {
               </tr>
             </thead>
             <tbody className="divide-y divide-white/5">
-              {predictions.slice(0, 50).map((p, idx) => (
-                <tr key={idx} className="hover:bg-white/5">
+              {paginatedPredictions.map((p, idx) => (
+                <tr key={startIndex + idx} className="hover:bg-white/5">
                   <td className="px-4 py-3 text-sm font-mono">{p.SKU}</td>
                   <td className="px-4 py-3 text-sm">{p.NomeProduto}</td>
                   <td className="px-4 py-3 text-sm text-right font-medium text-green-400">
@@ -107,6 +120,47 @@ export default function PredictionsView({ data }: Props) {
             </tbody>
           </table>
         </div>
+
+        {/* Pagination */}
+        {totalPages > 1 && (
+          <div className="p-4 border-t border-white/10 flex items-center justify-between">
+            <div className="text-sm text-muted-foreground">
+              Página {currentPage} de {totalPages}
+            </div>
+            <div className="flex gap-2">
+              <button
+                onClick={() => setCurrentPage(1)}
+                disabled={currentPage === 1}
+                className="px-3 py-2 rounded-lg bg-white/5 hover:bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+              >
+                Primeira
+              </button>
+              <button
+                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                disabled={currentPage === 1}
+                className="px-3 py-2 rounded-lg bg-white/5 hover:bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
+              >
+                <ChevronLeft className="w-4 h-4" />
+                Anterior
+              </button>
+              <button
+                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                disabled={currentPage === totalPages}
+                className="px-3 py-2 rounded-lg bg-white/5 hover:bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
+              >
+                Próxima
+                <ChevronRight className="w-4 h-4" />
+              </button>
+              <button
+                onClick={() => setCurrentPage(totalPages)}
+                disabled={currentPage === totalPages}
+                className="px-3 py-2 rounded-lg bg-white/5 hover:bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+              >
+                Última
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
