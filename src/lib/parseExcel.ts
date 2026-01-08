@@ -84,14 +84,21 @@ export async function parseCSVFile(
           csvString = data as string;
         }
 
-        // Detecta o separador (vírgula ou ponto e vírgula)
+        // Detecta o separador (pipe, ponto e vírgula ou vírgula)
         const lines = csvString.split('\n');
         const firstLine = lines[0] || '';
 
-        // Conta ocorrências de ; e , para determinar o separador
+        // Conta ocorrências de |, ; e , para determinar o separador
+        const pipeCount = (firstLine.match(/\|/g) || []).length;
         const semicolonCount = (firstLine.match(/;/g) || []).length;
         const commaCount = (firstLine.match(/,/g) || []).length;
-        const delimiter = semicolonCount > commaCount ? ';' : ',';
+
+        let delimiter = ',';
+        if (pipeCount > semicolonCount && pipeCount > commaCount) {
+          delimiter = '|';
+        } else if (semicolonCount > commaCount) {
+          delimiter = ';';
+        }
 
         console.log('CSV Delimiter detected:', delimiter);
         console.log('First line:', firstLine.substring(0, 200));
