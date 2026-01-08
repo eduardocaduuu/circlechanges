@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 import { useStore } from '@/lib/store';
 import type { NormalizedRow } from '@/types';
 import { formatCurrency, formatNumber, exportToCSV } from '@/lib/formatters';
-import { Download, AlertTriangle, Database, Trash2, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Download, AlertTriangle, Database, Trash2, ChevronLeft, ChevronRight, Filter } from 'lucide-react';
 
 interface Props {
   data: NormalizedRow[];
@@ -11,21 +11,29 @@ interface Props {
 const ROWS_PER_PAGE = 100;
 
 export default function DataView({ data }: Props) {
-  const { dataQuality, clearData } = useStore();
+  const { dataQuality, clearData, filters, setFilters } = useStore();
   const [currentPage, setCurrentPage] = useState(1);
 
-  const errorsData = useMemo(() => {
-    return data.filter(r => r._hasErrors);
-  }, [data]);
+  // Aplicar filtro de tipos
+  const filteredData = useMemo(() => {
+    if (filters.tipos.length === 0) {
+      return data;
+    }
+    return data.filter(r => filters.tipos.includes(r.Tipo));
+  }, [data, filters.tipos]);
 
-  const totalPages = Math.ceil(data.length / ROWS_PER_PAGE);
+  const errorsData = useMemo(() => {
+    return filteredData.filter(r => r._hasErrors);
+  }, [filteredData]);
+
+  const totalPages = Math.ceil(filteredData.length / ROWS_PER_PAGE);
   const startIndex = (currentPage - 1) * ROWS_PER_PAGE;
   const endIndex = startIndex + ROWS_PER_PAGE;
-  const paginatedData = data.slice(startIndex, endIndex);
+  const paginatedData = filteredData.slice(startIndex, endIndex);
 
   const handleExportAll = () => {
     exportToCSV(
-      data.map(r => ({
+      filteredData.map(r => ({
         GerenciaCode: r.GerenciaCode,
         Setor: r.Setor,
         NomeRevendedora: r.NomeRevendedora,
@@ -100,11 +108,55 @@ export default function DataView({ data }: Props) {
 
       {/* Data Table */}
       <div className="glass rounded-xl overflow-hidden">
+        {/* Filtro de Tipo */}
+        <div className="p-4 border-b border-white/10">
+          <div className="flex items-center gap-3 flex-wrap">
+            <div className="flex items-center gap-2">
+              <Filter className="w-4 h-4 text-muted-foreground" />
+              <span className="text-sm font-medium">Tipo:</span>
+            </div>
+            {(['Venda', 'Brinde', 'Doação', 'Outro'] as const).map((tipo) => {
+              const isSelected = filters.tipos.includes(tipo);
+              return (
+                <button
+                  key={tipo}
+                  onClick={() => {
+                    setCurrentPage(1);
+                    setFilters({
+                      tipos: isSelected
+                        ? filters.tipos.filter(t => t !== tipo)
+                        : [...filters.tipos, tipo]
+                    });
+                  }}
+                  className={`px-3 py-1.5 rounded-lg text-sm transition-all ${
+                    isSelected
+                      ? 'bg-gradient-green text-white'
+                      : 'bg-white/5 hover:bg-white/10'
+                  }`}
+                >
+                  {tipo}
+                </button>
+              );
+            })}
+            {filters.tipos.length > 0 && (
+              <button
+                onClick={() => {
+                  setCurrentPage(1);
+                  setFilters({ tipos: [] });
+                }}
+                className="px-3 py-1.5 rounded-lg text-sm bg-red-500/20 hover:bg-red-500/30 text-red-400"
+              >
+                Limpar
+              </button>
+            )}
+          </div>
+        </div>
+
         <div className="p-4 border-b border-white/10 flex items-center justify-between flex-wrap gap-4">
           <div>
-            <h3 className="text-lg font-semibold">Dados Filtrados ({data.length} linhas)</h3>
+            <h3 className="text-lg font-semibold">Dados Filtrados ({filteredData.length} linhas)</h3>
             <p className="text-sm text-muted-foreground mt-1">
-              Mostrando {startIndex + 1} a {Math.min(endIndex, data.length)} de {data.length}
+              Mostrando {startIndex + 1} a {Math.min(endIndex, filteredData.length)} de {filteredData.length}
             </p>
           </div>
           <div className="flex gap-2">

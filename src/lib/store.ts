@@ -34,6 +34,7 @@ const defaultFilters: Filters = {
   searchRevendedora: '',
   searchProduto: '',
   incluirBrindesDoacao: false,
+  tipos: [],
 };
 
 export const useStore = create<AppState>()(

@@ -84,6 +84,7 @@ export interface Filters {
   searchRevendedora: string;
   searchProduto: string;
   incluirBrindesDoacao: boolean; // Toggle para incluir Brinde/Doação em análises
+  tipos: ('Venda' | 'Brinde' | 'Doação' | 'Outro')[]; // Filtro de tipos para aba Dados
 }
 
 // ============================================================================
