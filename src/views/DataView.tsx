@@ -16,7 +16,7 @@ export default function DataView({ data }: Props) {
 
   // Aplicar filtro de tipos
   const filteredData = useMemo(() => {
-    if (filters.tipos.length === 0) {
+    if (!filters.tipos || filters.tipos.length === 0) {
       return data;
     }
     return data.filter(r => filters.tipos.includes(r.Tipo));
@@ -116,7 +116,7 @@ export default function DataView({ data }: Props) {
               <span className="text-sm font-medium">Tipo:</span>
             </div>
             {(['Venda', 'Brinde', 'Doação', 'Outro'] as const).map((tipo) => {
-              const isSelected = filters.tipos.includes(tipo);
+              const isSelected = filters.tipos?.includes(tipo) || false;
               return (
                 <button
                   key={tipo}
@@ -124,8 +124,8 @@ export default function DataView({ data }: Props) {
                     setCurrentPage(1);
                     setFilters({
                       tipos: isSelected
-                        ? filters.tipos.filter(t => t !== tipo)
-                        : [...filters.tipos, tipo]
+                        ? (filters.tipos || []).filter(t => t !== tipo)
+                        : [...(filters.tipos || []), tipo]
                     });
                   }}
                   className={`px-3 py-1.5 rounded-lg text-sm transition-all ${
@@ -138,7 +138,7 @@ export default function DataView({ data }: Props) {
                 </button>
               );
             })}
-            {filters.tipos.length > 0 && (
+            {filters.tipos && filters.tipos.length > 0 && (
               <button
                 onClick={() => {
                   setCurrentPage(1);
