@@ -131,9 +131,23 @@ export default function OverviewView({ data }: Props) {
               <Tooltip
                 contentStyle={{
                   backgroundColor: '#1a1a1a',
-                  border: '1px solid rgba(255,255,255,0.1)',
+                  border: '1px solid rgba(255,255,255,0.3)',
                   borderRadius: '8px',
-                  padding: '10px'
+                  padding: '12px',
+                  color: '#fff',
+                  fontSize: '14px',
+                  fontWeight: '500',
+                }}
+                labelStyle={{
+                  color: '#10b981',
+                  fontSize: '14px',
+                  fontWeight: '600',
+                  marginBottom: '4px',
+                }}
+                itemStyle={{
+                  color: '#fff',
+                  fontSize: '14px',
+                  fontWeight: '500',
                 }}
                 formatter={(value: any) => [formatCurrency(value), 'Receita']}
               />
