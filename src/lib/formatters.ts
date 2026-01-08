@@ -42,39 +42,45 @@ export function formatCompactNumber(value: number): string {
 }
 
 /**
- * Exporta dados para CSV
+ * Exporta dados para Excel (.xlsx)
  */
-export function exportToCSV(data: Record<string, any>[], filename: string) {
+export function exportToExcel(data: Record<string, any>[], filename: string) {
   if (data.length === 0) return;
 
-  // Cabeçalhos
-  const headers = Object.keys(data[0]);
-  const csv = [
-    headers.join(','),
-    ...data.map((row) =>
-      headers
-        .map((header) => {
-          const value = row[header];
-          // Escapar valores com vírgula ou aspas
-          if (typeof value === 'string' && (value.includes(',') || value.includes('"'))) {
-            return `"${value.replace(/"/g, '""')}"`;
-          }
-          return value;
-        })
-        .join(',')
-    ),
-  ].join('\n');
+  // Importa XLSX dinamicamente
+  import('xlsx').then((XLSX) => {
+    // Cria worksheet a partir dos dados
+    const worksheet = XLSX.utils.json_to_sheet(data);
 
-  // Download
-  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-  const link = document.createElement('a');
-  const url = URL.createObjectURL(blob);
-  link.setAttribute('href', url);
-  link.setAttribute('download', filename);
-  link.style.visibility = 'hidden';
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
+    // Ajusta largura das colunas automaticamente
+    const columns = Object.keys(data[0]);
+    const colWidths = columns.map((col) => {
+      const maxLength = Math.max(
+        col.length,
+        ...data.map((row) => String(row[col] || '').length)
+      );
+      return { wch: Math.min(maxLength + 2, 50) }; // max 50 caracteres
+    });
+    worksheet['!cols'] = colWidths;
+
+    // Cria workbook
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Dados');
+
+    // Garante que o filename termine com .xlsx
+    const excelFilename = filename.replace(/\.(csv|xls)$/, '') + '.xlsx';
+
+    // Download
+    XLSX.writeFile(workbook, excelFilename);
+  });
+}
+
+/**
+ * Exporta dados para CSV (mantido para compatibilidade)
+ */
+export function exportToCSV(data: Record<string, any>[], filename: string) {
+  // Redireciona para exportToExcel
+  exportToExcel(data, filename);
 }
 
 /**

@@ -43,7 +43,7 @@ export default function ProductsView({ data }: Props) {
                 NumeroTransacoes: p.numeroTransacoes,
                 NumeroClientes: p.numeroClientes,
               })),
-              'produtos.csv'
+              'produtos.xlsx'
             )}
             className="px-4 py-2 bg-gradient-green rounded-lg hover:opacity-90 flex items-center gap-2 text-sm"
           >

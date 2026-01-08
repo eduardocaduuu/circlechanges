@@ -79,7 +79,7 @@ export default function PredictionsView({ data }: Props) {
                 Confianca: p.confianca,
                 Erro: p.erro,
               })),
-              'previsoes.csv'
+              'previsoes.xlsx'
             )}
             className="px-4 py-2 bg-gradient-green rounded-lg hover:opacity-90 flex items-center gap-2 text-sm"
           >

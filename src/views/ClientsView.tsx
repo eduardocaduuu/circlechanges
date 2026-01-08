@@ -68,7 +68,7 @@ export default function ClientsView({ data }: Props) {
         TicketMedio: c.ticketMedioPorCompra,
         SKUsDistintos: c.numeroSKUsDistintos,
       })),
-      'clientes.csv'
+      'clientes.xlsx'
     );
   };
 
@@ -98,7 +98,7 @@ export default function ClientsView({ data }: Props) {
             className="px-4 py-2 bg-gradient-green rounded-lg hover:opacity-90 transition-opacity flex items-center gap-2 text-sm"
           >
             <Download className="w-4 h-4" />
-            Exportar CSV
+            Exportar Excel
           </button>
         </div>
 

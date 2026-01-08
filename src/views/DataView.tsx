@@ -39,7 +39,7 @@ export default function DataView({ data }: Props) {
         MeioCaptacao: r.MeioCaptacao,
         EntregaCategoria: r.EntregaCategoria,
       })),
-      'dados-filtrados.csv'
+      'dados-filtrados.xlsx'
     );
   };
 
@@ -113,7 +113,7 @@ export default function DataView({ data }: Props) {
               className="px-4 py-2 bg-gradient-green rounded-lg hover:opacity-90 flex items-center gap-2 text-sm"
             >
               <Download className="w-4 h-4" />
-              Exportar CSV
+              Exportar Excel
             </button>
             <button
               onClick={clearData}
