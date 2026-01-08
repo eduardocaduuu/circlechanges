@@ -1,9 +1,9 @@
 import { useMemo, useState } from 'react';
 import { useStore } from '@/lib/store';
-import type { NormalizedRow } from '@/types';
+import type { NormalizedRow, BasketPair } from '@/types';
 import { generateBaskets, calculateFrequentPairs, calculateBasketMetrics } from '@/lib/marketBasket';
 import { formatNumber, formatPercent, exportToCSV } from '@/lib/formatters';
-import { Download, ChevronLeft, ChevronRight, Filter } from 'lucide-react';
+import { Download, ChevronLeft, ChevronRight, Filter, Eye, ShoppingBasket } from 'lucide-react';
 
 interface Props {
   data: NormalizedRow[];
@@ -17,6 +17,8 @@ export default function BasketView({ data }: Props) {
   const [minLift, setMinLift] = useState(1.0);
   const [minOccurrences, setMinOccurrences] = useState(1);
   const [searchProduct, setSearchProduct] = useState('');
+  const [selectedPair, setSelectedPair] = useState<BasketPair | null>(null);
+  const [showValidation, setShowValidation] = useState(false);
 
   const baskets = useMemo(() =>
     generateBaskets(data, filters.incluirBrindesDoacao),
@@ -63,8 +65,30 @@ export default function BasketView({ data }: Props) {
     setCurrentPage(1);
   };
 
+  // Encontrar cestas que contêm um par específico
+  const getBasketsForPair = (pair: BasketPair) => {
+    return baskets.filter(basket =>
+      basket.items.includes(pair.itemA) && basket.items.includes(pair.itemB)
+    );
+  };
+
   return (
     <div className="space-y-6">
+      {/* Toggle Validação */}
+      <div className="flex justify-end">
+        <button
+          onClick={() => setShowValidation(!showValidation)}
+          className={`px-4 py-2 rounded-lg flex items-center gap-2 text-sm transition-all ${
+            showValidation
+              ? 'bg-gradient-green text-white'
+              : 'bg-white/5 hover:bg-white/10'
+          }`}
+        >
+          <Eye className="w-4 h-4" />
+          {showValidation ? 'Ocultar' : 'Mostrar'} Validação de Dados
+        </button>
+      </div>
+
       {/* Basket Metrics */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <div className="glass rounded-lg p-4">
@@ -84,6 +108,157 @@ export default function BasketView({ data }: Props) {
           <p className="text-2xl font-bold">{formatPercent(metrics.percentualCestasUnitarias)}</p>
         </div>
       </div>
+
+      {/* Painel de Validação */}
+      {showValidation && (
+        <div className="glass rounded-xl p-6 border-2 border-green-500/30">
+          <div className="flex items-center gap-3 mb-6">
+            <ShoppingBasket className="w-6 h-6 text-green-400" />
+            <div>
+              <h3 className="text-lg font-semibold text-green-400">Painel de Validação</h3>
+              <p className="text-sm text-muted-foreground">Visualize transações reais para validar os resultados</p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Exemplos de Cestas */}
+            <div className="bg-white/5 rounded-lg p-4">
+              <h4 className="font-semibold mb-3 flex items-center gap-2">
+                <ShoppingBasket className="w-4 h-4" />
+                Exemplos de Transações (Primeiras 10)
+              </h4>
+              <div className="space-y-2 max-h-96 overflow-y-auto">
+                {baskets.slice(0, 10).map((basket, idx) => (
+                  <div key={idx} className="bg-white/5 rounded p-3 text-sm">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="font-mono text-xs text-green-400">Cesta #{idx + 1}</span>
+                      <span className="text-xs text-muted-foreground">{basket.items.length} itens</span>
+                    </div>
+                    <div className="text-xs text-muted-foreground mb-1">
+                      {basket.NomeRevendedora} • {basket.CicloLabel}
+                    </div>
+                    <div className="flex flex-wrap gap-1">
+                      {basket.items.map((item, i) => (
+                        <span key={i} className="px-2 py-0.5 bg-blue-500/20 text-blue-300 rounded text-xs font-mono">
+                          {item}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Detalhamento de Par Selecionado */}
+            <div className="bg-white/5 rounded-lg p-4">
+              <h4 className="font-semibold mb-3">
+                {selectedPair ? 'Detalhes do Par Selecionado' : 'Clique em um par para ver detalhes'}
+              </h4>
+              {selectedPair ? (
+                <div className="space-y-4">
+                  <div className="bg-gradient-green/10 border border-green-500/30 rounded-lg p-3">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="font-mono text-xs text-green-400">{selectedPair.itemA}</span>
+                      <span className="text-xl">+</span>
+                      <span className="font-mono text-xs text-green-400">{selectedPair.itemB}</span>
+                    </div>
+                    <div className="text-xs text-center text-muted-foreground">
+                      {selectedPair.nomeA} + {selectedPair.nomeB}
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2 text-sm">
+                    <div className="bg-white/5 rounded p-2">
+                      <div className="text-xs text-muted-foreground">Lift</div>
+                      <div className="text-lg font-bold text-green-400">{selectedPair.lift.toFixed(2)}</div>
+                    </div>
+                    <div className="bg-white/5 rounded p-2">
+                      <div className="text-xs text-muted-foreground">Ocorrências</div>
+                      <div className="text-lg font-bold">{selectedPair.occurrences}</div>
+                    </div>
+                    <div className="bg-white/5 rounded p-2">
+                      <div className="text-xs text-muted-foreground">Suporte</div>
+                      <div className="text-lg font-bold">{formatPercent(selectedPair.suporte * 100, 2)}</div>
+                    </div>
+                    <div className="bg-white/5 rounded p-2">
+                      <div className="text-xs text-muted-foreground">Confiança</div>
+                      <div className="text-lg font-bold">{formatPercent(selectedPair.confianca * 100, 1)}</div>
+                    </div>
+                  </div>
+
+                  <div>
+                    <div className="text-sm font-medium mb-2">
+                      Cestas contendo ambos ({getBasketsForPair(selectedPair).length}):
+                    </div>
+                    <div className="space-y-2 max-h-48 overflow-y-auto">
+                      {getBasketsForPair(selectedPair).slice(0, 5).map((basket, idx) => (
+                        <div key={idx} className="bg-white/5 rounded p-2 text-xs">
+                          <div className="text-muted-foreground mb-1">
+                            {basket.NomeRevendedora} • {basket.CicloLabel}
+                          </div>
+                          <div className="flex flex-wrap gap-1">
+                            {basket.items.map((item, i) => (
+                              <span
+                                key={i}
+                                className={`px-1.5 py-0.5 rounded font-mono ${
+                                  item === selectedPair.itemA || item === selectedPair.itemB
+                                    ? 'bg-green-500/30 text-green-300'
+                                    : 'bg-blue-500/20 text-blue-300'
+                                }`}
+                              >
+                                {item}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      ))}
+                      {getBasketsForPair(selectedPair).length > 5 && (
+                        <div className="text-xs text-center text-muted-foreground">
+                          + {getBasketsForPair(selectedPair).length - 5} cestas...
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  <button
+                    onClick={() => setSelectedPair(null)}
+                    className="w-full px-3 py-2 bg-white/5 hover:bg-white/10 rounded text-sm"
+                  >
+                    Limpar Seleção
+                  </button>
+                </div>
+              ) : (
+                <div className="text-center text-muted-foreground py-8">
+                  <ShoppingBasket className="w-12 h-12 mx-auto mb-2 opacity-50" />
+                  <p className="text-sm">Clique no ícone 👁️ em qualquer par da tabela abaixo</p>
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div className="mt-6 pt-4 border-t border-white/10">
+            <h4 className="font-semibold mb-3">Como Validar:</h4>
+            <ul className="space-y-2 text-sm text-muted-foreground">
+              <li className="flex items-start gap-2">
+                <span className="text-green-400">1.</span>
+                <span>Veja as "Transações" à esquerda - cada cesta agrupa produtos do mesmo Cliente + Ciclo + Data</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="text-green-400">2.</span>
+                <span>Clique em 👁️ em um par para ver as cestas que contêm AMBOS os produtos</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="text-green-400">3.</span>
+                <span>Lift &gt; 1.0 significa que os produtos aparecem juntos com mais frequência do que esperado por acaso</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="text-green-400">4.</span>
+                <span>Ocorrências mostra quantas vezes exatamente os produtos apareceram juntos</span>
+              </li>
+            </ul>
+          </div>
+        </div>
+      )}
 
       {/* Filters */}
       <div className="glass rounded-xl p-6">
@@ -257,6 +432,7 @@ export default function BasketView({ data }: Props) {
                 <th className="px-4 py-3 text-right text-sm font-medium">Suporte</th>
                 <th className="px-4 py-3 text-right text-sm font-medium">Confiança</th>
                 <th className="px-4 py-3 text-left text-sm font-medium">Clientes ({pairs.length > 0 ? pairs[0].clientes.length : 0})</th>
+                <th className="px-4 py-3 text-center text-sm font-medium">Ações</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-white/5">
@@ -290,6 +466,19 @@ export default function BasketView({ data }: Props) {
                         {pair.clientes.slice(0, 3).join(', ')}{pair.clientes.length > 3 ? '...' : ''}
                       </span>
                     </div>
+                  </td>
+                  <td className="px-4 py-3 text-center">
+                    <button
+                      onClick={() => {
+                        setSelectedPair(pair);
+                        setShowValidation(true);
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                      }}
+                      className="p-2 bg-blue-500/20 hover:bg-blue-500/30 rounded-lg transition-colors"
+                      title="Ver detalhes e validação"
+                    >
+                      <Eye className="w-4 h-4 text-blue-400" />
+                    </button>
                   </td>
                 </tr>
               ))}
