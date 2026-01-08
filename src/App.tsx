@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useEffect } from 'react';
 import { useStore } from '@/lib/store';
 import { applyFilters } from '@/lib/parseExcel';
 import FileUpload from '@/components/FileUpload';
@@ -13,7 +13,15 @@ import DataView from '@/views/DataView';
 import { BarChart3 } from 'lucide-react';
 
 function App() {
-  const { rawData, filters, activeTab } = useStore();
+  const { rawData, filters, activeTab, setFilters } = useStore();
+
+  // Verificar e corrigir filtros corrompidos
+  useEffect(() => {
+    if (!filters.tipos) {
+      console.warn('Filtros corrompidos detectados. Inicializando campo tipos...');
+      setFilters({ tipos: [] });
+    }
+  }, [filters, setFilters]);
 
   // Apply filters
   const filteredData = useMemo(() => {
