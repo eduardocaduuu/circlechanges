@@ -19,7 +19,13 @@ export default function DataView({ data }: Props) {
     if (!filters.tipos || filters.tipos.length === 0) {
       return data;
     }
-    return data.filter(r => filters.tipos.includes(r.Tipo));
+    const filtered = data.filter(r => filters.tipos.includes(r.Tipo));
+    console.log('Filtro de tipos aplicado:', {
+      tiposSelecionados: filters.tipos,
+      totalOriginal: data.length,
+      totalFiltrado: filtered.length
+    });
+    return filtered;
   }, [data, filters.tipos]);
 
   const errorsData = useMemo(() => {
@@ -154,9 +160,19 @@ export default function DataView({ data }: Props) {
 
         <div className="p-4 border-b border-white/10 flex items-center justify-between flex-wrap gap-4">
           <div>
-            <h3 className="text-lg font-semibold">Dados Filtrados ({filteredData.length} linhas)</h3>
+            <div className="flex items-center gap-3">
+              <h3 className="text-lg font-semibold">Dados Filtrados ({filteredData.length} linhas)</h3>
+              {filters.tipos && filters.tipos.length > 0 && (
+                <span className="px-2 py-1 bg-green-500/20 text-green-400 text-xs rounded-lg">
+                  Filtro de Tipo Ativo ({filters.tipos.length})
+                </span>
+              )}
+            </div>
             <p className="text-sm text-muted-foreground mt-1">
               Mostrando {startIndex + 1} a {Math.min(endIndex, filteredData.length)} de {filteredData.length}
+              {filters.tipos && filters.tipos.length > 0 && data.length !== filteredData.length && (
+                <span className="text-yellow-400 ml-1">(total sem filtro: {data.length})</span>
+              )}
             </p>
           </div>
           <div className="flex gap-2">
