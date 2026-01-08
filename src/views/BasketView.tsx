@@ -87,62 +87,29 @@ export default function BasketView({ data }: Props) {
 
       {/* Filters */}
       <div className="glass rounded-xl p-6">
-        <div className="flex items-center gap-2 mb-4">
-          <Filter className="w-5 h-5 text-primary" />
-          <h3 className="text-lg font-semibold">Filtros</h3>
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-2">
+            <Filter className="w-5 h-5 text-primary" />
+            <h3 className="text-lg font-semibold">Filtrar Produtos</h3>
+          </div>
+          <button
+            onClick={() => {
+              setMinLift(1.0);
+              setMinOccurrences(1);
+              setSearchProduct('');
+              handleFilterChange();
+            }}
+            className="px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm transition-colors"
+          >
+            Limpar Filtros
+          </button>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {/* Lift Mínimo */}
-          <div>
-            <label className="block text-sm font-medium mb-2">
-              Lift Mínimo: {minLift.toFixed(1)}
-            </label>
-            <input
-              type="range"
-              min="0"
-              max="5"
-              step="0.1"
-              value={minLift}
-              onChange={(e) => {
-                setMinLift(parseFloat(e.target.value));
-                handleFilterChange();
-              }}
-              className="w-full h-2 bg-white/10 rounded-lg appearance-none cursor-pointer slider"
-            />
-            <div className="flex justify-between text-xs text-muted-foreground mt-1">
-              <span>0.0</span>
-              <span>5.0</span>
-            </div>
-          </div>
-
-          {/* Ocorrências Mínimas */}
-          <div>
-            <label className="block text-sm font-medium mb-2">
-              Ocorrências Mínimas: {minOccurrences}
-            </label>
-            <input
-              type="range"
-              min="1"
-              max="20"
-              step="1"
-              value={minOccurrences}
-              onChange={(e) => {
-                setMinOccurrences(parseInt(e.target.value));
-                handleFilterChange();
-              }}
-              className="w-full h-2 bg-white/10 rounded-lg appearance-none cursor-pointer slider"
-            />
-            <div className="flex justify-between text-xs text-muted-foreground mt-1">
-              <span>1</span>
-              <span>20+</span>
-            </div>
-          </div>
-
+        <div className="space-y-6">
           {/* Buscar Produto */}
           <div>
             <label className="block text-sm font-medium mb-2">
-              Buscar Produto (SKU ou Nome)
+              🔍 Buscar Produto
             </label>
             <input
               type="text"
@@ -151,27 +118,96 @@ export default function BasketView({ data }: Props) {
                 setSearchProduct(e.target.value);
                 handleFilterChange();
               }}
-              placeholder="Ex: 12345 ou Shampoo"
-              className="w-full px-4 py-2 bg-white/10 border border-white/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+              placeholder="Digite o SKU ou nome do produto..."
+              className="w-full px-4 py-2.5 bg-white/10 border border-white/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
             />
+            <p className="text-xs text-muted-foreground mt-1.5">
+              Busca em ambos os produtos do par (A ou B)
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Lift Mínimo */}
+            <div className="bg-white/5 rounded-lg p-4">
+              <label className="block text-sm font-medium mb-3">
+                ⚡ Força da Associação (Lift)
+              </label>
+              <div className="flex items-center gap-3 mb-2">
+                <span className="text-2xl font-bold text-green-400">{minLift.toFixed(1)}</span>
+                <span className="text-xs text-muted-foreground">
+                  {minLift >= 2 ? 'Muito Forte' : minLift >= 1.5 ? 'Forte' : minLift > 1 ? 'Moderado' : 'Todos'}
+                </span>
+              </div>
+              <input
+                type="range"
+                min="0"
+                max="5"
+                step="0.1"
+                value={minLift}
+                onChange={(e) => {
+                  setMinLift(parseFloat(e.target.value));
+                  handleFilterChange();
+                }}
+                className="w-full h-2 bg-white/10 rounded-lg appearance-none cursor-pointer slider"
+              />
+              <div className="flex justify-between text-xs text-muted-foreground mt-2">
+                <span>0.0 (Todos)</span>
+                <span>5.0 (Máximo)</span>
+              </div>
+              <p className="text-xs text-muted-foreground mt-2">
+                Lift &gt; 1.0 indica que produtos são comprados juntos com mais frequência
+              </p>
+            </div>
+
+            {/* Ocorrências Mínimas */}
+            <div className="bg-white/5 rounded-lg p-4">
+              <label className="block text-sm font-medium mb-3">
+                📊 Ocorrências Mínimas
+              </label>
+              <div className="flex items-center gap-3 mb-2">
+                <span className="text-2xl font-bold text-blue-400">{minOccurrences}</span>
+                <span className="text-xs text-muted-foreground">
+                  {minOccurrences >= 10 ? 'Muito Frequente' : minOccurrences >= 5 ? 'Frequente' : 'Qualquer'}
+                </span>
+              </div>
+              <input
+                type="range"
+                min="1"
+                max="20"
+                step="1"
+                value={minOccurrences}
+                onChange={(e) => {
+                  setMinOccurrences(parseInt(e.target.value));
+                  handleFilterChange();
+                }}
+                className="w-full h-2 bg-white/10 rounded-lg appearance-none cursor-pointer slider"
+              />
+              <div className="flex justify-between text-xs text-muted-foreground mt-2">
+                <span>1 (Todas)</span>
+                <span>20+</span>
+              </div>
+              <p className="text-xs text-muted-foreground mt-2">
+                Quantidade mínima de vezes que os produtos foram comprados juntos
+              </p>
+            </div>
           </div>
         </div>
 
-        <div className="mt-4 flex items-center justify-between">
-          <p className="text-sm text-muted-foreground">
-            {filteredPairs.length} de {pairs.length} pares exibidos
-          </p>
-          <button
-            onClick={() => {
-              setMinLift(1.0);
-              setMinOccurrences(1);
-              setSearchProduct('');
-              handleFilterChange();
-            }}
-            className="text-sm text-primary hover:underline"
-          >
-            Limpar Filtros
-          </button>
+        <div className="mt-6 pt-4 border-t border-white/10">
+          <div className="flex items-center justify-between">
+            <p className="text-sm">
+              <span className="text-muted-foreground">Mostrando </span>
+              <span className="font-bold text-green-400">{filteredPairs.length}</span>
+              <span className="text-muted-foreground"> de </span>
+              <span className="font-bold">{pairs.length}</span>
+              <span className="text-muted-foreground"> pares</span>
+            </p>
+            {(minLift > 1 || minOccurrences > 1 || searchProduct) && (
+              <span className="text-xs bg-primary/20 text-primary px-3 py-1 rounded-full">
+                Filtros ativos
+              </span>
+            )}
+          </div>
         </div>
       </div>
 
