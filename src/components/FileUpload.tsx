@@ -1,6 +1,6 @@
 import { useCallback, useState } from 'react';
 import { useStore } from '@/lib/store';
-import { parseExcelFile } from '@/lib/parseExcel';
+import { parseExcelFile, parseCSVFile } from '@/lib/parseExcel';
 import { Upload, FileSpreadsheet, Loader2, AlertCircle } from 'lucide-react';
 
 export default function FileUpload() {
@@ -9,8 +9,12 @@ export default function FileUpload() {
 
   const handleFile = useCallback(
     async (file: File) => {
-      if (!file.name.endsWith('.xlsx') && !file.name.endsWith('.xls')) {
-        setError('Por favor, selecione um arquivo Excel (.xlsx ou .xls)');
+      const fileName = file.name.toLowerCase();
+      const isExcel = fileName.endsWith('.xlsx') || fileName.endsWith('.xls');
+      const isCSV = fileName.endsWith('.csv');
+
+      if (!isExcel && !isCSV) {
+        setError('Por favor, selecione um arquivo Excel (.xlsx, .xls) ou CSV (.csv)');
         return;
       }
 
@@ -18,7 +22,9 @@ export default function FileUpload() {
       setError(null);
 
       try {
-        const { data, quality } = await parseExcelFile(file);
+        const { data, quality } = isCSV
+          ? await parseCSVFile(file)
+          : await parseExcelFile(file);
         setData(data, quality);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Erro ao processar arquivo');
@@ -51,7 +57,7 @@ export default function FileUpload() {
       <div className="text-center mb-6">
         <h2 className="text-3xl font-bold gradient-text mb-2">Bem-vindo!</h2>
         <p className="text-muted-foreground">
-          Faça upload da sua planilha Excel para começar a análise
+          Faça upload da sua planilha Excel ou CSV para começar a análise
         </p>
       </div>
 
@@ -69,7 +75,7 @@ export default function FileUpload() {
       >
         <input
           type="file"
-          accept=".xlsx,.xls"
+          accept=".xlsx,.xls,.csv"
           onChange={handleChange}
           className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
           disabled={isLoading}
@@ -91,7 +97,7 @@ export default function FileUpload() {
 
           <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
             <FileSpreadsheet className="w-4 h-4" />
-            <span>Formatos aceitos: .xlsx, .xls</span>
+            <span>Formatos aceitos: .xlsx, .xls, .csv</span>
           </div>
         </div>
       </div>

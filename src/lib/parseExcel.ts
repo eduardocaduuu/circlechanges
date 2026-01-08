@@ -60,6 +60,88 @@ export async function parseExcelFile(
 }
 
 /**
+ * Parse arquivo CSV e retorna dados normalizados + quality info
+ */
+export async function parseCSVFile(
+  file: File
+): Promise<{ data: NormalizedRow[]; quality: DataQuality }> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+
+    reader.onload = (e) => {
+      try {
+        const data = e.target?.result;
+        if (!data) {
+          throw new Error('Erro ao ler arquivo CSV');
+        }
+
+        // Converte ArrayBuffer para string se necessário
+        let csvString: string;
+        if (data instanceof ArrayBuffer) {
+          const decoder = new TextDecoder('utf-8');
+          csvString = decoder.decode(data);
+        } else {
+          csvString = data as string;
+        }
+
+        // Detecta o separador (vírgula ou ponto e vírgula)
+        const lines = csvString.split('\n');
+        const firstLine = lines[0] || '';
+
+        // Conta ocorrências de ; e , para determinar o separador
+        const semicolonCount = (firstLine.match(/;/g) || []).length;
+        const commaCount = (firstLine.match(/,/g) || []).length;
+        const delimiter = semicolonCount > commaCount ? ';' : ',';
+
+        console.log('CSV Delimiter detected:', delimiter);
+        console.log('First line:', firstLine.substring(0, 200));
+
+        // Parse manual do CSV para garantir compatibilidade
+        const parsedData: RawRow[] = [];
+        const headers = firstLine.split(delimiter).map(h => h.trim().replace(/^["']|["']$/g, ''));
+
+        console.log('CSV Headers:', headers);
+
+        for (let i = 1; i < lines.length; i++) {
+          const line = lines[i].trim();
+          if (!line) continue;
+
+          const values = line.split(delimiter).map(v => v.trim().replace(/^["']|["']$/g, ''));
+          const row: any = {};
+
+          headers.forEach((header, index) => {
+            row[header] = values[index] || undefined;
+          });
+
+          parsedData.push(row as RawRow);
+        }
+
+        console.log('CSV Parsed rows:', parsedData.length);
+        console.log('First row sample:', parsedData[0]);
+
+        if (parsedData.length === 0) {
+          throw new Error('Arquivo CSV vazio ou formato inválido');
+        }
+
+        // Normaliza cada linha
+        const { normalized, quality } = normalizeData(parsedData);
+
+        resolve({ data: normalized, quality });
+      } catch (error) {
+        console.error('CSV Parse Error:', error);
+        reject(error);
+      }
+    };
+
+    reader.onerror = () => {
+      reject(new Error('Erro ao ler arquivo CSV'));
+    };
+
+    reader.readAsText(file, 'UTF-8');
+  });
+}
+
+/**
  * Normaliza array de dados brutos
  */
 function normalizeData(rawData: RawRow[]): {

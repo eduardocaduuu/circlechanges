@@ -3,7 +3,7 @@ import { useStore } from '@/lib/store';
 import type { NormalizedRow } from '@/types';
 import { generateBaskets, calculateFrequentPairs, calculateBasketMetrics } from '@/lib/marketBasket';
 import { formatNumber, formatPercent, exportToCSV } from '@/lib/formatters';
-import { Download, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Download, ChevronLeft, ChevronRight, Filter } from 'lucide-react';
 
 interface Props {
   data: NormalizedRow[];
@@ -14,6 +14,9 @@ const PAIRS_PER_PAGE = 50;
 export default function BasketView({ data }: Props) {
   const { filters } = useStore();
   const [currentPage, setCurrentPage] = useState(1);
+  const [minLift, setMinLift] = useState(1.0);
+  const [minOccurrences, setMinOccurrences] = useState(1);
+  const [searchProduct, setSearchProduct] = useState('');
 
   const baskets = useMemo(() =>
     generateBaskets(data, filters.incluirBrindesDoacao),
@@ -25,15 +28,40 @@ export default function BasketView({ data }: Props) {
     [baskets, data]
   );
 
+  const filteredPairs = useMemo(() => {
+    return pairs.filter(pair => {
+      // Filtro por Lift mínimo
+      if (pair.lift < minLift) return false;
+
+      // Filtro por Ocorrências mínimas
+      if (pair.occurrences < minOccurrences) return false;
+
+      // Filtro por busca de produto
+      if (searchProduct) {
+        const search = searchProduct.toUpperCase();
+        const matchA = pair.itemA.includes(search) || pair.nomeA.toUpperCase().includes(search);
+        const matchB = pair.itemB.includes(search) || pair.nomeB.toUpperCase().includes(search);
+        if (!matchA && !matchB) return false;
+      }
+
+      return true;
+    });
+  }, [pairs, minLift, minOccurrences, searchProduct]);
+
   const metrics = useMemo(() =>
     calculateBasketMetrics(baskets),
     [baskets]
   );
 
-  const totalPages = Math.ceil(pairs.length / PAIRS_PER_PAGE);
+  const totalPages = Math.ceil(filteredPairs.length / PAIRS_PER_PAGE);
   const startIndex = (currentPage - 1) * PAIRS_PER_PAGE;
   const endIndex = startIndex + PAIRS_PER_PAGE;
-  const paginatedPairs = pairs.slice(startIndex, endIndex);
+  const paginatedPairs = filteredPairs.slice(startIndex, endIndex);
+
+  // Reset para página 1 quando filtros mudam
+  const handleFilterChange = () => {
+    setCurrentPage(1);
+  };
 
   return (
     <div className="space-y-6">
@@ -57,18 +85,108 @@ export default function BasketView({ data }: Props) {
         </div>
       </div>
 
+      {/* Filters */}
+      <div className="glass rounded-xl p-6">
+        <div className="flex items-center gap-2 mb-4">
+          <Filter className="w-5 h-5 text-primary" />
+          <h3 className="text-lg font-semibold">Filtros</h3>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {/* Lift Mínimo */}
+          <div>
+            <label className="block text-sm font-medium mb-2">
+              Lift Mínimo: {minLift.toFixed(1)}
+            </label>
+            <input
+              type="range"
+              min="0"
+              max="5"
+              step="0.1"
+              value={minLift}
+              onChange={(e) => {
+                setMinLift(parseFloat(e.target.value));
+                handleFilterChange();
+              }}
+              className="w-full h-2 bg-white/10 rounded-lg appearance-none cursor-pointer slider"
+            />
+            <div className="flex justify-between text-xs text-muted-foreground mt-1">
+              <span>0.0</span>
+              <span>5.0</span>
+            </div>
+          </div>
+
+          {/* Ocorrências Mínimas */}
+          <div>
+            <label className="block text-sm font-medium mb-2">
+              Ocorrências Mínimas: {minOccurrences}
+            </label>
+            <input
+              type="range"
+              min="1"
+              max="20"
+              step="1"
+              value={minOccurrences}
+              onChange={(e) => {
+                setMinOccurrences(parseInt(e.target.value));
+                handleFilterChange();
+              }}
+              className="w-full h-2 bg-white/10 rounded-lg appearance-none cursor-pointer slider"
+            />
+            <div className="flex justify-between text-xs text-muted-foreground mt-1">
+              <span>1</span>
+              <span>20+</span>
+            </div>
+          </div>
+
+          {/* Buscar Produto */}
+          <div>
+            <label className="block text-sm font-medium mb-2">
+              Buscar Produto (SKU ou Nome)
+            </label>
+            <input
+              type="text"
+              value={searchProduct}
+              onChange={(e) => {
+                setSearchProduct(e.target.value);
+                handleFilterChange();
+              }}
+              placeholder="Ex: 12345 ou Shampoo"
+              className="w-full px-4 py-2 bg-white/10 border border-white/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+            />
+          </div>
+        </div>
+
+        <div className="mt-4 flex items-center justify-between">
+          <p className="text-sm text-muted-foreground">
+            {filteredPairs.length} de {pairs.length} pares exibidos
+          </p>
+          <button
+            onClick={() => {
+              setMinLift(1.0);
+              setMinOccurrences(1);
+              setSearchProduct('');
+              handleFilterChange();
+            }}
+            className="text-sm text-primary hover:underline"
+          >
+            Limpar Filtros
+          </button>
+        </div>
+      </div>
+
       {/* Frequent Pairs */}
       <div className="glass rounded-xl overflow-hidden">
         <div className="p-4 border-b border-white/10 flex items-center justify-between flex-wrap gap-4">
           <div>
-            <h3 className="text-lg font-semibold">Produtos Comprados Juntos ({pairs.length} pares)</h3>
+            <h3 className="text-lg font-semibold">Produtos Comprados Juntos ({filteredPairs.length} pares)</h3>
             <p className="text-sm text-muted-foreground mt-1">
-              Mostrando {startIndex + 1} a {Math.min(endIndex, pairs.length)} de {pairs.length}
+              Mostrando {startIndex + 1} a {Math.min(endIndex, filteredPairs.length)} de {filteredPairs.length}
             </p>
           </div>
           <button
             onClick={() => exportToCSV(
-              pairs.map(p => ({
+              filteredPairs.map(p => ({
                 ProdutoA: p.itemA,
                 NomeA: p.nomeA,
                 ProdutoB: p.itemB,
