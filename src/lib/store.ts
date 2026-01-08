@@ -84,10 +84,18 @@ export const useStore = create<AppState>()(
     }),
     {
       name: 'vendas-analytics-storage',
+      version: 1,
       partialize: (state) => ({
         filters: state.filters,
         activeTab: state.activeTab,
       }),
+      migrate: (persistedState: any) => {
+        // Migração v0 -> v1: Adiciona campo tipos ao filtro
+        if (persistedState && persistedState.filters && !persistedState.filters.tipos) {
+          persistedState.filters.tipos = [];
+        }
+        return persistedState as AppState;
+      },
     }
   )
 );
