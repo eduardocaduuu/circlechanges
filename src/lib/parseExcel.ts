@@ -117,7 +117,22 @@ export async function parseCSVFile(
           const row: any = {};
 
           headers.forEach((header, index) => {
-            row[header] = values[index] || undefined;
+            let value: any = values[index] || undefined;
+
+            // Converte valores numéricos com vírgula para ponto
+            // (ex: "15,48" -> 15.48)
+            if (value && typeof value === 'string') {
+              // Se parece um número com vírgula decimal
+              if (/^\d+,\d+$/.test(value)) {
+                value = parseFloat(value.replace(',', '.'));
+              }
+              // Se parece um número inteiro
+              else if (/^\d+$/.test(value)) {
+                value = parseInt(value, 10);
+              }
+            }
+
+            row[header] = value;
           });
 
           parsedData.push(row as RawRow);
