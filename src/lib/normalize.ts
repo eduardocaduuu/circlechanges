@@ -39,7 +39,8 @@ export function normalizeSKU(codigoProduto: string | number | undefined): string
 }
 
 /**
- * Parse ciclo no formato "MM/YYYY" para CicloInfo
+ * Parse ciclo no formato "NN/YYYY" para CicloInfo
+ * Aceita ciclos de 1 a 99 (não apenas meses 1-12)
  * Retorna objeto com label, index (para ordenação) e componentes
  */
 export function parseCiclo(cicloString: string | undefined): CicloInfo {
@@ -52,7 +53,7 @@ export function parseCiclo(cicloString: string | undefined): CicloInfo {
     };
   }
 
-  // Tenta extrair MM/YYYY ou MM-YYYY ou variações
+  // Tenta extrair NN/YYYY ou NN-YYYY ou variações (ciclo pode ser 1-99)
   const match = cicloString.match(/(\d{1,2})[\/\-](\d{4})/);
 
   if (!match) {
@@ -64,11 +65,11 @@ export function parseCiclo(cicloString: string | undefined): CicloInfo {
     };
   }
 
-  const mes = parseInt(match[1], 10);
+  const ciclo = parseInt(match[1], 10);
   const ano = parseInt(match[2], 10);
 
-  // Validação básica
-  if (mes < 1 || mes > 12 || ano < 2000 || ano > 2100) {
+  // Validação básica - ciclo pode ser de 1 a 99, ano de 2000 a 2100
+  if (ciclo < 1 || ciclo > 99 || ano < 2000 || ano > 2100) {
     return {
       label: 'UNKNOWN',
       index: -1,
@@ -79,8 +80,8 @@ export function parseCiclo(cicloString: string | undefined): CicloInfo {
 
   return {
     label: cicloString.trim(),
-    index: ano * 12 + mes, // Para ordenação
-    mes,
+    index: ano * 100 + ciclo, // Para ordenação (100 ciclos por ano para garantir ordem correta)
+    mes: ciclo, // Mantém o campo como "mes" por compatibilidade, mas é o número do ciclo
     ano,
   };
 }
